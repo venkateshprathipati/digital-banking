@@ -1,0 +1,82 @@
+###############################################################
+# Production Profile
+###############################################################
+
+spring:
+  config:
+    activate:
+      on-profile: prod
+
+  datasource:
+    url: ${DB_URL}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+    driver-class-name: org.postgresql.Driver
+
+    hikari:
+      pool-name: BankingProdHikariCP
+      minimum-idle: 20
+      maximum-pool-size: 50
+      idle-timeout: 600000
+      max-lifetime: 1800000
+      connection-timeout: 30000
+      validation-timeout: 5000
+      auto-commit: false
+
+  jpa:
+    open-in-view: false
+    show-sql: false
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+
+    hibernate:
+      ddl-auto: validate
+
+    properties:
+      hibernate:
+        jdbc:
+          batch_size: 50
+        order_inserts: true
+        order_updates: true
+        generate_statistics: false
+
+server:
+  port: 8082
+
+logging:
+  level:
+    root: WARN
+    com.bank.account: INFO
+    org.springframework: WARN
+    org.hibernate: WARN
+
+  file:
+    name: /var/log/account-service/account-service.log
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include:
+          - health
+          - info
+          - metrics
+
+  endpoint:
+    health:
+      show-details: never
+
+bank:
+  transfer-limit: 1000000
+  minimum-balance: 5000
+  currency: INR
+  support-email: support@bank.com
+  interest-rate: 7.0
+  branch-code: PROD001
+
+  notification:
+    sms-enabled: true
+    email-enabled: true
+
+  account:
+    max-accounts-per-customer: 10
+    auto-freeze-days: 180

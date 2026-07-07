@@ -1,0 +1,80 @@
+###############################################################
+# Test Profile
+###############################################################
+
+spring:
+  config:
+    activate:
+      on-profile: test
+
+  datasource:
+    url: jdbc:postgresql://localhost:5432/banking_test_db
+    username: postgres
+    password: postgres
+    driver-class-name: org.postgresql.Driver
+
+    hikari:
+      pool-name: BankingTestHikariCP
+      minimum-idle: 5
+      maximum-pool-size: 10
+      idle-timeout: 300000
+      max-lifetime: 1800000
+      connection-timeout: 30000
+      validation-timeout: 5000
+      auto-commit: false
+
+  jpa:
+    open-in-view: false
+    show-sql: true
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+
+    hibernate:
+      ddl-auto: validate
+
+    properties:
+      hibernate:
+        format_sql: true
+        jdbc:
+          batch_size: 25
+
+server:
+  port: 8081
+
+logging:
+  level:
+    root: INFO
+    com.bank.account: INFO
+    org.hibernate.SQL: DEBUG
+    org.hibernate.orm.jdbc.bind: TRACE
+
+  file:
+    name: logs/account-service-test.log
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include:
+          - health
+          - info
+          - metrics
+
+  endpoint:
+    health:
+      show-details: always
+
+bank:
+  transfer-limit: 50000
+  minimum-balance: 500
+  currency: INR
+  support-email: support-test@bank.com
+  interest-rate: 5.5
+  branch-code: TEST001
+
+  notification:
+    sms-enabled: false
+    email-enabled: true
+
+  account:
+    max-accounts-per-customer: 3
+    auto-freeze-days: 60
