@@ -8,9 +8,9 @@ spring:
       on-profile: test
 
   datasource:
-    url: jdbc:postgresql://localhost:5432/banking_test_db
-    username: postgres
-    password: postgres
+    url: jdbc:postgresql://localhost:5432/digital_banking_test
+    username: banking_app
+    password: bankuser
     driver-class-name: org.postgresql.Driver
 
     hikari:

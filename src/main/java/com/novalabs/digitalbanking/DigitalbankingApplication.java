@@ -6,7 +6,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.ConfigurationPropertiesScan;
 
 @SpringBootApplication
-@ConfigurationPropertiesScan
+//@ConfigurationPropertiesScan
 public class DigitalbankingApplication {
 
 	public static void main(String[] args) {
