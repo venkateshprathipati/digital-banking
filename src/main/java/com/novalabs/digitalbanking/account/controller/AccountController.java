@@ -2,20 +2,35 @@ package com.novalabs.digitalbanking.account.controller;
 
 import com.novalabs.digitalbanking.account.entity.Account;
 import com.novalabs.digitalbanking.account.service.AccountService;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+@Slf4j
 @RestController
-@RequestMapping("/accounts")
+@RequestMapping("/api/v1/accounts")
+@RequiredArgsConstructor
 public class AccountController {
 
-    private final AccountService  accountService;
+    private final AccountService accountService;
 
-    public AccountController(AccountService accountService) {
-        this.accountService = accountService;
-    }
+//    @PostMapping
+//    public ResponseEntity<ApiResponse<AccountResponse>> createAccount(
+//            @Valid @RequestBody CreateAccountRequest request
+//    ){
+//        AccountResponse response =
+//                accountService.create(request);
+//
+//    log.info(LogMessages.ACCOUNT_CREATED,
+//            account.getAccountNumber());
+
+//        return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponseUtil.created(
+//                response, AccountConstants.ACCOUNT_CREATED
+//        ));
+//    }
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
