@@ -1,34 +1,68 @@
 package com.novalabs.digitalbanking.account.service;
 
+import com.novalabs.digitalbanking.account.dto.AccountResponse;
+import com.novalabs.digitalbanking.account.dto.CreateAccountRequest;
+import com.novalabs.digitalbanking.account.dto.UpdateAccountRequest;
 import com.novalabs.digitalbanking.account.entity.Account;
+import com.novalabs.digitalbanking.account.enums.AccountStatus;
+import com.novalabs.digitalbanking.account.enums.Currency;
+import com.novalabs.digitalbanking.account.generator.AccountNumberGenerator;
+import com.novalabs.digitalbanking.account.mapper.AccountMapper;
 import com.novalabs.digitalbanking.account.repository.AccountRepository;
+import com.novalabs.digitalbanking.common.exception.ResourceNotFoundException;
+import jakarta.transaction.Transactional;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.util.List;
-import java.util.Optional;
 
 @Service
+@RequiredArgsConstructor
 public class AccountService {
 
-    private final AccountRepository accountRepository;
+    private final AccountRepository repository;
+    private final AccountMapper mapper;
+    private final AccountNumberGenerator generator;
 
-    public AccountService(AccountRepository accountRepository) {
-        this.accountRepository = accountRepository;
+    public AccountResponse create(CreateAccountRequest request) {
+        Account account = mapper.toEntity(request);
+        account.setAccountNumber(generator.generate());
+        account.setStatus(AccountStatus.ACTIVE);
+        account.setBalance(BigDecimal.ZERO);
+        account.setCurrency(Currency.INR);
+        Account saved = repository.save(account);
+        return mapper.toResponse(saved);
     }
 
-    public Account save(Account account) {
-        return accountRepository.save(account);
+    @Transactional
+    public AccountResponse update(Long id, UpdateAccountRequest request) {
+        Account account = repository.findById(id).orElseThrow(() ->
+                new ResourceNotFoundException("Account not found with id : " + id));
+        mapper.updateEntity(request, account);
+        Account updated = repository.save(account);
+        return mapper.toResponse(updated);
     }
 
-    public List<Account> findAll() {
-        return accountRepository.findAll();
+    public List<AccountResponse> findAll() {
+        List<Account> accounts = repository.findAll();
+        return mapper.toResponse(accounts);
     }
 
-    public Optional<Account> findById(Long id) {
-        return accountRepository.findById(id);
+    public AccountResponse findById(Long id) {
+        Account account = repository.findById(id)
+                .orElseThrow(() ->
+                        new ResourceNotFoundException(
+                                "Account not found : " + id));
+        return mapper.toResponse(account);
     }
 
-    public Optional<Account> findByAccountNumber(String accountNumber) {
-        return accountRepository.findByAccountNumber(accountNumber);
+    public AccountResponse findByAccountNumber(String accountNumber) {
+        Account account = repository
+                .findByAccountNumber(accountNumber)
+                .orElseThrow(() ->
+                        new ResourceNotFoundException(
+                                "Account not found"));
+        return mapper.toResponse(account);
     }
 }

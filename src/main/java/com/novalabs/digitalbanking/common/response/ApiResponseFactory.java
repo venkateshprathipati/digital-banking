@@ -7,7 +7,7 @@ import org.springframework.stereotype.Component;
 import java.time.LocalDateTime;
 
 @Component
-public class ResponseFactory {
+public class ApiResponseFactory {
 
     public <T> ApiResponse<T> ok(T data,String message,String path){
         return build(HttpStatus.OK,data,message,path);
