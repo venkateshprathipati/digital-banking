@@ -3,7 +3,6 @@ package com.novalabs.digitalbanking.account.controller;
 import com.novalabs.digitalbanking.account.dto.AccountResponse;
 import com.novalabs.digitalbanking.account.dto.CreateAccountRequest;
 import com.novalabs.digitalbanking.account.dto.UpdateAccountRequest;
-import com.novalabs.digitalbanking.account.entity.Account;
 import com.novalabs.digitalbanking.account.service.AccountService;
 import com.novalabs.digitalbanking.common.response.ApiResponse;
 import com.novalabs.digitalbanking.common.response.ApiResponseFactory;
@@ -16,6 +15,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+
+import static com.novalabs.digitalbanking.common.constants.AccountConstants.*;
 
 
 @RestController
@@ -35,7 +36,7 @@ public class AccountController {
 
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(factory.created(
-                                response, "Account created successfully",
+                                response, ACCOUNT_CREATED,
                                 servletRequest.getRequestURI()
                         )
                 );
@@ -50,7 +51,7 @@ public class AccountController {
         return ResponseEntity.ok(
                 factory.ok(
                         response,
-                        "Account updated successfully",
+                        ACCOUNT_UPDATED,
                         servletRequest.getRequestURI()
                 )
         );
@@ -62,7 +63,7 @@ public class AccountController {
         return ResponseEntity.ok(
                 factory.ok(
                         accounts,
-                        "Accounts fetched successfully",
+                        ACCOUNT_FETCHED,
                         servletRequest.getRequestURI()
                 )
         );
@@ -73,7 +74,7 @@ public class AccountController {
         AccountResponse account = accountService.findById(id);
         return ResponseEntity.ok(
                 factory.ok(
-                        account, "Account fetched successfully", request.getRequestURI()
+                        account, ACCOUNT_FETCHED, request.getRequestURI()
                 )
         );
     }
@@ -84,7 +85,7 @@ public class AccountController {
         return ResponseEntity.ok(
                 factory.ok(
                         account,
-                        "Account fetched successfully",
+                        ACCOUNT_FETCHED,
                         request.getRequestURI()
                 )
         );

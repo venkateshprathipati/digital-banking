@@ -17,6 +17,8 @@ import org.springframework.stereotype.Service;
 import java.math.BigDecimal;
 import java.util.List;
 
+import static com.novalabs.digitalbanking.common.constants.AccountConstants.ACCOUNT_NOT_FOUND;
+
 @Service
 @RequiredArgsConstructor
 public class AccountService {
@@ -38,7 +40,7 @@ public class AccountService {
     @Transactional
     public AccountResponse update(Long id, UpdateAccountRequest request) {
         Account account = repository.findById(id).orElseThrow(() ->
-                new ResourceNotFoundException("Account not found with id : " + id));
+                new ResourceNotFoundException(ACCOUNT_NOT_FOUND + " with id : " + id));
         mapper.updateEntity(request, account);
         Account updated = repository.save(account);
         return mapper.toResponse(updated);
@@ -52,8 +54,7 @@ public class AccountService {
     public AccountResponse findById(Long id) {
         Account account = repository.findById(id)
                 .orElseThrow(() ->
-                        new ResourceNotFoundException(
-                                "Account not found : " + id));
+                        new ResourceNotFoundException(ACCOUNT_NOT_FOUND + " : " + id));
         return mapper.toResponse(account);
     }
 
@@ -62,7 +63,7 @@ public class AccountService {
                 .findByAccountNumber(accountNumber)
                 .orElseThrow(() ->
                         new ResourceNotFoundException(
-                                "Account not found"));
+                                ACCOUNT_NOT_FOUND));
         return mapper.toResponse(account);
     }
 }
