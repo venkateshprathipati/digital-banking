@@ -1,515 +1,378 @@
-# 🏦 Enterprise Project – Digital Banking & Payments Platform
+# 🏦 Digital Banking & Payments Platform
 
-> **A production-grade, enterprise-level microservices project designed to demonstrate senior backend engineering skills.**
+> **An enterprise-grade backend project built incrementally to learn production-ready Java, Spring Boot, and distributed system design.**
 
-This project simulates a real-world digital banking and payments platform using **Java, Spring Boot, Spring Cloud, PostgreSQL, MongoDB, Kafka, Redis, Docker, and Kubernetes-ready architecture**.
+This project simulates a real-world digital banking platform similar to those used by fintech companies. The project starts as a **Modular Monolith** and will gradually evolve into a **Microservices Architecture** while maintaining production-quality engineering practices.
 
-The goal is to gain hands-on experience building highly scalable, resilient, secure, and observable distributed systems similar to those used by fintech companies and product-based organizations.
+---
+
+# 🚧 Project Status
+
+## Current Phase
+
+**Architecture:** Modular Monolith
+
+**Current Sprint:** Spring Boot Foundation – Account Service
+
+### ✅ Completed
+
+- Spring Boot Project Setup
+- Layered Architecture
+- Environment Profiles
+- PostgreSQL Configuration
+- Flyway Database Migration
+- Account Module
+- CRUD REST APIs
+- Request Validation
+- Global Exception Handling
+- Logging
+- Maven Build Configuration
+
+### 🚀 Upcoming
+
+- Spring Security
+- Authentication & Authorization
+- Payment Module
+- Transaction Module
+- Unit Testing
+- Docker
+- Redis
+- Kafka
+- Monitoring
+- Microservices Migration
 
 ---
 
 # 🎯 Project Objectives
 
-Build a banking platform capable of handling:
+Build a banking platform capable of supporting:
 
-- Customer account management
-- Money transfers
-- Fraud detection
-- Transaction history
+- Customer Account Management
+- Secure Money Transfers
+- Transaction History
+- Fraud Detection
 - Notifications
-- Distributed communication
-- High concurrency
-- Fault tolerance
-- Event-driven architecture
+- High Concurrency
+- Event-Driven Communication
+- Fault Tolerance
+- Distributed Systems
 
-This project focuses on **how enterprise systems are designed**, not just how APIs are written.
+The focus is on learning **enterprise architecture and backend engineering**, not just implementing REST APIs.
 
 ---
 
-# 🏗️ High-Level Architecture
+# 🏗️ Current Architecture
+
+The project currently follows a **Modular Monolith** architecture.
 
 ```text
-                    +----------------------+
-                    |     Client Apps      |
-                    |  Web / Mobile / API  |
-                    +----------+-----------+
-                               |
-                               v
-                    +----------------------+
-                    |     API Gateway      |
-                    +----------+-----------+
-                               |
-       ---------------------------------------------------------
-       |            |             |             |              |
-       v            v             v             v              v
-+--------------+ +--------------+ +--------------+ +------------------+ +------------------+
-| Auth Service | | Account Svc  | | Payment Svc  | | Transaction Svc  | | Fraud Detection  |
-+--------------+ +--------------+ +--------------+ +------------------+ +------------------+
-| PostgreSQL   | | PostgreSQL   | | PostgreSQL   | | MongoDB          | | MongoDB          |
-+--------------+ +--------------+ +--------------+ +------------------+ +------------------+
-                                             |
-                                             v
-                                   +----------------------+
-                                   | Notification Service |
-                                   +----------------------+
-                                   | MongoDB             |
-                                   +----------------------+
-
-                               |
-                               v
-                     +----------------------+
-                     |        Kafka         |
-                     +----------------------+
-                               |
-                               v
-                     +----------------------+
-                     |        Redis         |
-                     +----------------------+
-                               |
-                               v
-                +----------------------------------+
-                | Monitoring & Distributed Tracing |
-                +----------------------------------+
+                    Client
+                       │
+                       ▼
+             Spring Boot Application
+                       │
+        ┌──────────────┼──────────────┐
+        │              │              │
+        ▼              ▼              ▼
+   Controller      Service      Repository
+        │              │              │
+        └──────────────┼──────────────┘
+                       ▼
+                  PostgreSQL
+                       │
+                    Flyway
 ```
 
 ---
 
-# 🧩 Microservices
+# 🎯 Target Architecture (Future)
 
-| Service | Database | Responsibility |
-|----------|----------|----------------|
-| Auth Service | PostgreSQL | Authentication & Authorization |
-| Account Service | PostgreSQL | Bank account lifecycle |
-| Payment Service | PostgreSQL | Money transfers |
-| Transaction Service | MongoDB | Transaction history |
-| Fraud Detection Service | MongoDB | Fraud analysis |
-| Notification Service | MongoDB | Email/SMS/Push notifications |
-| API Gateway | - | Routing, Authentication, Rate limiting |
+The project will gradually evolve into the following microservices architecture.
+
+```text
+                   Client Applications
+                          │
+                          ▼
+                    API Gateway
+                          │
+ ┌─────────┬─────────┬─────────┬──────────┬────────────┐
+ ▼         ▼         ▼         ▼          ▼
+Auth   Account   Payment   Transaction   Fraud
+Service Service   Service     Service     Service
+ │         │         │           │           │
+PostgreSQL PostgreSQL PostgreSQL MongoDB   MongoDB
+                          │
+                          ▼
+                 Notification Service
+                          │
+                       MongoDB
+
+                Kafka • Redis • Monitoring
+```
 
 ---
 
-# 🛠️ Technology Stack
+# 🛠 Technology Stack
 
 ## Backend
 
 - Java 21
 - Spring Boot
-- Spring Security
+- Spring MVC
 - Spring Data JPA
-- Spring Data MongoDB
-- Spring Cloud
 - Spring Validation
-- Spring AOP
+- Spring Security *(Upcoming)*
+- Spring Cloud *(Future)*
 
----
+## Database
 
-## Databases
+- PostgreSQL
+- Flyway
 
-### PostgreSQL
+## Future Technologies
 
-Used for:
-
-- Users
-- Accounts
-- Payments
-
-Why?
-
-- Strong consistency
-- ACID compliance
-- Relational data
-- Transactions
-
----
-
-### MongoDB
-
-Used for:
-
-- Transaction history
-- Fraud events
-- Notifications
-- Event storage
-
-Why?
-
-- Flexible schema
-- High write throughput
-- Aggregation support
-- Time-series friendly
-
----
-
-## Messaging
-
-Kafka
-
-Used for:
-
-- Payment events
-- Notification events
-- Fraud events
-- Audit events
-
-Benefits
-
-- Loose coupling
-- Async communication
-- High throughput
-- Event replay
-
----
-
-## Caching
-
-Redis
-
-Used for
-
-- Session caching
-- Frequently accessed data
-- Rate limiting
-- Distributed locks
-
----
-
-## Security
-
-- OAuth2
-- JWT Authentication
-- Role Based Access
-- Password Encryption
-- API Gateway Security
-
----
-
-## Observability
-
-- Spring Boot Actuator
-- Micrometer
+- MongoDB
+- Kafka
+- Redis
+- Docker
+- Kubernetes
 - Prometheus
 - Grafana
 - ELK Stack
-- Distributed Tracing
-- Correlation IDs
 
 ---
 
-# 📦 Service Details
-
----
-
-# 1️⃣ Account Service
-
-## Responsibilities
-
-- Open bank account
-- Update customer information
-- Freeze account
-- Unfreeze account
-- Balance inquiry
-- Deposit
-- Withdraw
-
----
-
-## Features
-
-- Account creation
-- Balance management
-- Account status management
-- Customer validation
-
----
-
-## Engineering Concepts
-
-- ACID Transactions
-- Optimistic Locking
-- Pessimistic Locking
-- Row Locking
-- Transaction Isolation
-- Concurrency Handling
-
----
-
-# 2️⃣ Payment Service
-
-## Responsibilities
-
-- Money transfer
-- Scheduled payments
-- Internal transfers
-- External transfers
-- Retry failed payments
-
----
-
-## Features
-
-- Transfer money
-- Payment retries
-- Scheduled jobs
-- Payment validation
-
----
-
-## Engineering Concepts
-
-- Saga Pattern
-- Idempotency Keys
-- Distributed Transactions
-- Retry Policies
-- Outbox Pattern
-- Compensation Logic
-
----
-
-# 3️⃣ Fraud Detection Service
-
-## Responsibilities
-
-- Analyze transactions
-- Detect fraud
-- Generate fraud alerts
-
----
-
-## Features
-
-- Velocity checks
-- Geo mismatch detection
-- Amount threshold validation
-- Blacklist detection
-- Device anomaly detection
-
----
-
-## MongoDB Usage
-
-- Fraud rules
-- Fraud events
-- Flexible documents
-- High write throughput
-
----
-
-# 4️⃣ Transaction History Service
-
-## Responsibilities
-
-- Store transaction history
-- Search transactions
-- Monthly reports
-- Audit logs
-
----
-
-## Features
-
-- Transaction search
-- Filters
-- Reports
-- Audit trail
-
----
-
-## MongoDB Concepts
-
-- Aggregation Pipeline
-- Time-Series Collections
-- Indexing
-- Pagination
-- Sorting
-
----
-
-# 5️⃣ Notification Service
-
-## Responsibilities
-
-- Email notifications
-- SMS notifications
-- Push notifications
-
----
-
-## Triggered By
-
-- Payment completed
-- Payment failed
-- Account opened
-- Fraud detected
-
----
-
-# 🚀 Advanced Engineering Features
-
-## Reliability
-
-- Circuit Breakers
-- Retry Strategies
-- Timeout Handling
-- Dead Letter Queues
-- Fallback Mechanisms
-- Bulkhead Pattern
-
----
-
-## Security
-
-- OAuth2
-- JWT
-- Password Encryption
-- API Gateway Authentication
-- Role-Based Access Control
-
----
-
-## Observability
-
-- Correlation IDs
-- Distributed Tracing
-- Structured Logging
-- ELK Stack
-- Prometheus
-- Grafana
-
----
-
-## Scalability
-
-- Redis Caching
-- Kafka Async Processing
-- Read Replicas
-- Horizontal Scaling
-- Stateless Services
-
----
-
-# 🎓 Senior-Level Engineering Concepts
-
-## PostgreSQL
-
-- ACID Transactions
-- Transaction Isolation Levels
-- Row-Level Locking
-- Deadlocks
-- Connection Pool Exhaustion
-- Index Optimization
-- Query Planning
-
----
-
-## MongoDB
-
-- Aggregation Pipelines
-- Sharding
-- Replica Sets
-- Event Storage
-- Document Modeling
-- TTL Collections
-
----
-
-## Kafka
-
-- Topics
-- Partitions
-- Consumer Groups
-- Ordering Guarantees
-- Exactly-Once Semantics (and the Myth)
-- Consumer Lag
-- Offset Management
-
----
-
-## Distributed Systems
-
-- Eventual Consistency
-- Failure Recovery
-- Retry Storms
-- Distributed Transactions
-- Saga Pattern
-- CAP Theorem
-- Idempotency
-- Backpressure
-
----
-
-# 📂 Suggested Repository Structure
+# 📂 Current Project Structure
 
 ```text
-digital-banking-platform/
+digital-banking/
+
+├── src
+│   ├── main
+│   │   ├── java
+│   │   │   └── com
+│   │   │       └── novalabs
+│   │   │           └── digitalbanking
+│   │   │               ├── account
+│   │   │               │   ├── controller
+│   │   │               │   ├── dto
+│   │   │               │   ├── entity
+│   │   │               │   ├── repository
+│   │   │               │   └── service
+│   │   │               ├── config
+│   │   │               ├── exception
+│   │   │               └── DigitalBankingApplication
+│   │   │
+│   │   └── resources
+│   │       ├── db
+│   │       │   └── migration
+│   │       ├── application.yml
+│   │       ├── application-dev.yml
+│   │       ├── application-test.yml
+│   │       └── application-prod.yml
 │
-├── api-gateway/
-├── auth-service/
-├── account-service/
-├── payment-service/
-├── transaction-service/
-├── fraud-detection-service/
-├── notification-service/
-│
-├── common/
-│
-├── docker/
-├── infrastructure/
-├── monitoring/
-├── docs/
-│
-├── docker-compose.yml
-└── README.md
+├── pom.xml
+├── README.md
+└── .gitignore
 ```
 
 ---
 
-# 🎯 Learning Outcomes
+# 📦 Current Module
 
-By completing this project, you will gain practical experience in:
+## Account Service
 
-- Designing enterprise microservices
-- Building RESTful APIs
-- Spring Boot internals
+Implemented Features
+
+- Create Account
+- Get Account
+- Update Account
+- Delete Account
+- Account Validation
+- Exception Handling
+
+### Engineering Concepts
+
+- Layered Architecture
+- DTO Pattern
+- Repository Pattern
+- Dependency Injection
+- Bean Validation
+- Flyway Migration
+- ACID Transactions
+
+---
+
+# 🚀 Running the Project
+
+## Prerequisites
+
+- Java 21+
+- Maven 3.9+
+- PostgreSQL 17+
+
+## Clone Repository
+
+```bash
+git clone <repository-url>
+cd digital-banking
+```
+
+## Create Database
+
+```sql
+CREATE DATABASE digital_banking;
+```
+
+## Configure
+
+Update:
+
+```
+application-dev.yml
+```
+
+with your PostgreSQL credentials.
+
+## Run
+
+```bash
+mvn spring-boot:run
+```
+
+Application starts at:
+
+```
+http://localhost:8080
+```
+
+---
+
+# 📖 Implemented REST APIs
+
+| Method | Endpoint | Description |
+|---------|----------|-------------|
+| POST | `/api/v1/accounts` | Create Account |
+| GET | `/api/v1/accounts/{id}` | Get Account |
+| GET | `/api/v1/accounts` | List Accounts |
+| PUT | `/api/v1/accounts/{id}` | Update Account |
+| DELETE | `/api/v1/accounts/{id}` | Delete Account |
+
+---
+
+# 🗺 Development Roadmap
+
+```text
+✅ Project Setup
+
+        ↓
+
+✅ Configuration
+
+        ↓
+
+✅ PostgreSQL
+
+        ↓
+
+✅ Flyway
+
+        ↓
+
+✅ Account Module
+
+        ↓
+
+⬜ Spring Security
+
+        ↓
+
+⬜ Payment Module
+
+        ↓
+
+⬜ Transaction Module
+
+        ↓
+
+⬜ Kafka Integration
+
+        ↓
+
+⬜ Redis
+
+        ↓
+
+⬜ Docker
+
+        ↓
+
+⬜ Monitoring
+
+        ↓
+
+⬜ Microservices Migration
+```
+
+---
+
+# 🎓 Engineering Concepts Covered
+
+- Spring Boot
+- Dependency Injection
+- Bean Lifecycle
+- REST APIs
+- DTO Pattern
+- Repository Pattern
+- Validation
+- Exception Handling
+- Logging
+- PostgreSQL
+- Flyway
+- JPA & Hibernate
+
+Upcoming:
+
 - Spring Security
-- Distributed systems
-- Event-driven architecture
-- PostgreSQL optimization
-- MongoDB data modeling
-- Kafka messaging
-- Redis caching
-- API Gateway
-- Docker containerization
-- Observability and monitoring
-- Fault tolerance
-- High-concurrency system design
+- Kafka
+- Redis
+- Docker
+- Distributed Transactions
+- Saga Pattern
+- Event-Driven Architecture
 
 ---
 
-# 🚀 Target Audience
+# 📚 Learning Goals
 
-This project is ideal for developers preparing for:
+This project is designed to gain hands-on experience with:
 
-- Senior Java Backend Engineer
-- Spring Boot Developer
-- Microservices Engineer
-- Software Engineer II / III
-- Staff Software Engineer
-- FinTech Backend Engineer
-- Product-Based Company Interviews
-
----
-
-# 📈 Project Goals
-
-- Learn enterprise architecture patterns
-- Build production-ready microservices
-- Understand distributed systems
-- Master Spring Boot ecosystem
-- Demonstrate senior-level backend engineering skills
-- Create a portfolio project that reflects real-world financial systems
+- Enterprise Backend Development
+- Spring Boot Internals
+- Production Code Quality
+- REST API Design
+- Database Design
+- Distributed Systems
+- Event-Driven Architecture
+- High-Concurrency Applications
+- Cloud-Native Development
 
 ---
 
-## 📄 License
+# 👨‍💻 Git Commit Convention
 
-This project is intended for educational and portfolio purposes to showcase enterprise backend engineering practices.
+Examples:
+
+```text
+feat(account): add account creation endpoint
+fix(account): validate duplicate account numbers
+refactor(account): simplify service layer
+docs(readme): update project documentation
+chore: cleanup project structure
+```
+
+---
+
+# 📄 License
+
+This project is intended for educational purposes and to demonstrate enterprise backend engineering practices.
