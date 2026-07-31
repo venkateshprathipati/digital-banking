@@ -12,6 +12,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -29,6 +30,7 @@ public class AccountController {
     private final ApiResponseFactory factory;
 
     @PostMapping
+    @PreAuthorize("hasAnyRole('CUSTOMER,'EMPLOYEE','ADMIN')")
     public ResponseEntity<ApiResponse<AccountResponse>> create(
             @Valid @RequestBody CreateAccountRequest request,
             HttpServletRequest servletRequest) {
@@ -43,6 +45,7 @@ public class AccountController {
     }
 
     @PutMapping("/{id}")
+    @PreAuthorize("hasAnyRole('EMPLOYEE','ADMIN')")
     public ResponseEntity<ApiResponse<AccountResponse>> update(
             @PathVariable Long id,
             @Valid @RequestBody UpdateAccountRequest request,
@@ -58,6 +61,7 @@ public class AccountController {
     }
 
     @GetMapping
+    @PreAuthorize("hasAnyRole('EMPLOYEE', 'ADMIN')")
     public ResponseEntity<ApiResponse<List<AccountResponse>>> getAllAccounts(HttpServletRequest servletRequest) {
         List<AccountResponse> accounts = accountService.findAll();
         return ResponseEntity.ok(
@@ -70,6 +74,7 @@ public class AccountController {
     }
 
     @GetMapping("/{id}")
+    @PreAuthorize("hasAnyRole('CUSTOMER', 'EMPLOYEE', 'ADMIN')")
     public ResponseEntity<ApiResponse<AccountResponse>> getById(@PathVariable Long id, HttpServletRequest request) {
         AccountResponse account = accountService.findById(id);
         return ResponseEntity.ok(
@@ -80,6 +85,7 @@ public class AccountController {
     }
 
     @GetMapping("/account-number/{accountNumber}")
+    @PreAuthorize("hasAnyRole('CUSTOMER', 'EMPLOYEE', 'ADMIN')")
     public ResponseEntity<ApiResponse<AccountResponse>> getByAccountNumber(@PathVariable String accountNumber,HttpServletRequest request) {
         AccountResponse account = accountService.findByAccountNumber(accountNumber);
         return ResponseEntity.ok(

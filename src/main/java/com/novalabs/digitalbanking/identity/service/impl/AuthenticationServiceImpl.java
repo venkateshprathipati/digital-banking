@@ -67,10 +67,11 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     }
 
     @Override
-    public LoginResponse authenticate(LoginRequest loginRequest) {
+    public LoginResponse authenticate(LoginRequest request) {
+        String username = request.username().trim();
         Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
-                        loginRequest.username(),loginRequest.password()
+                        username,request.password()
                 )
         );
 
