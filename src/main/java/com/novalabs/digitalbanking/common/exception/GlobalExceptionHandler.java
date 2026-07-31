@@ -1,6 +1,5 @@
 package com.novalabs.digitalbanking.common.exception;
 
-import com.novalabs.digitalbanking.common.response.ApiResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
