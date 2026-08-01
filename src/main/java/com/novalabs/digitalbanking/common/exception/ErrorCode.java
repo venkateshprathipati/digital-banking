@@ -25,6 +25,7 @@ public enum ErrorCode {
     UNAUTHORIZED_OPERATION("AUTH_001", "Unauthorized operation",HttpStatus.FORBIDDEN),
     USERNAME_ALREADY_EXISTS("AUTH_002", "Username is already registered", HttpStatus.CONFLICT),
     EMAIL_ALREADY_EXISTS("AUTH_003", "Email is already registered", HttpStatus.CONFLICT),
+    ACCESS_DENIED("SEC_403","Access denied",HttpStatus.FORBIDDEN),
     // System Errors
     INTERNAL_SERVER_ERROR("SYS_001", "Internal server error",HttpStatus.INTERNAL_SERVER_ERROR),
     DATABASE_ERROR("SYS_002", "Database error",HttpStatus.CONFLICT);

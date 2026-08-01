@@ -30,7 +30,7 @@ public class AccountController {
     private final ApiResponseFactory factory;
 
     @PostMapping
-    @PreAuthorize("hasAnyRole('CUSTOMER,'EMPLOYEE','ADMIN')")
+    @PreAuthorize("hasAnyRole('CUSTOMER','EMPLOYEE','ADMIN')")
     public ResponseEntity<ApiResponse<AccountResponse>> create(
             @Valid @RequestBody CreateAccountRequest request,
             HttpServletRequest servletRequest) {
