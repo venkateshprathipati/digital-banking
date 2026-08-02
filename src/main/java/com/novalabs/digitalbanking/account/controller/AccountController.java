@@ -2,6 +2,7 @@ package com.novalabs.digitalbanking.account.controller;
 
 import com.novalabs.digitalbanking.account.dto.AccountResponse;
 import com.novalabs.digitalbanking.account.dto.CreateAccountRequest;
+import com.novalabs.digitalbanking.account.dto.DepositRequest;
 import com.novalabs.digitalbanking.account.dto.UpdateAccountRequest;
 import com.novalabs.digitalbanking.account.service.AccountService;
 import com.novalabs.digitalbanking.common.response.ApiResponse;
@@ -86,7 +87,7 @@ public class AccountController {
 
     @GetMapping("/account-number/{accountNumber}")
     @PreAuthorize("hasAnyRole('CUSTOMER', 'EMPLOYEE', 'ADMIN')")
-    public ResponseEntity<ApiResponse<AccountResponse>> getByAccountNumber(@PathVariable String accountNumber,HttpServletRequest request) {
+    public ResponseEntity<ApiResponse<AccountResponse>> getByAccountNumber(@PathVariable String accountNumber, HttpServletRequest request) {
         AccountResponse account = accountService.findByAccountNumber(accountNumber);
         return ResponseEntity.ok(
                 factory.ok(
@@ -95,5 +96,16 @@ public class AccountController {
                         request.getRequestURI()
                 )
         );
+    }
+
+    @PostMapping("/{id}/deposit")
+    public ResponseEntity<ApiResponse<AccountResponse>> deposit(
+            @PathVariable Long id,
+            @Valid @RequestBody DepositRequest request,
+            HttpServletRequest servletRequest) {
+        AccountResponse response = accountService.deposit(id, request);
+        return ResponseEntity.ok(factory.ok(
+                response, "Amount deposited successfully", servletRequest.getRequestURI()
+        ));
     }
 }

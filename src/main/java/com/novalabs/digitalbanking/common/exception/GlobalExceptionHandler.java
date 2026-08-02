@@ -32,7 +32,12 @@ public class GlobalExceptionHandler {
     ) {
         HttpStatus status = exception.getErrorCode().getHttpStatus();
 
-        log.warn("Business Exception : {}", exception.getMessage());
+        log.warn(
+                "Business Exception [{}] at [{}]: {}",
+                exception.getErrorCode().getCode(),
+                request.getRequestURI(),
+                exception.getMessage()
+        );
 
         ApiError apiError = ApiError.builder()
                 .timestamp(LocalDateTime.now())
@@ -169,9 +174,9 @@ public class GlobalExceptionHandler {
         ApiError response = ApiError.builder()
                 .timestamp(LocalDateTime.now())
                 .status(HttpStatus.FORBIDDEN.value())
-                .error(ErrorCode.ACCESS_DENIED.getCode())
-                .errorCode(ACCESS_DENIED.getDefaultMessage())
-                .message("Access denied")
+                .error(HttpStatus.FORBIDDEN.getReasonPhrase())
+                .errorCode(ErrorCode.ACCESS_DENIED.getCode())
+                .message(ErrorCode.ACCESS_DENIED.getDefaultMessage())
                 .path(request.getRequestURI())
                 .build();
         return ResponseEntity.status(HttpStatus.FORBIDDEN)

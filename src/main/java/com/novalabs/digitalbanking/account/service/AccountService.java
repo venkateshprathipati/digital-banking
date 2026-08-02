@@ -2,6 +2,7 @@ package com.novalabs.digitalbanking.account.service;
 
 import com.novalabs.digitalbanking.account.dto.AccountResponse;
 import com.novalabs.digitalbanking.account.dto.CreateAccountRequest;
+import com.novalabs.digitalbanking.account.dto.DepositRequest;
 import com.novalabs.digitalbanking.account.dto.UpdateAccountRequest;
 import com.novalabs.digitalbanking.account.entity.Account;
 import com.novalabs.digitalbanking.account.enums.AccountStatus;
@@ -9,6 +10,8 @@ import com.novalabs.digitalbanking.account.enums.Currency;
 import com.novalabs.digitalbanking.account.generator.AccountNumberGenerator;
 import com.novalabs.digitalbanking.account.mapper.AccountMapper;
 import com.novalabs.digitalbanking.account.repository.AccountRepository;
+import com.novalabs.digitalbanking.common.exception.AccountFrozenException;
+import com.novalabs.digitalbanking.common.exception.InvalidDepositAmountException;
 import com.novalabs.digitalbanking.common.exception.ResourceNotFoundException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -46,6 +49,17 @@ public class AccountService {
         return mapper.toResponse(updated);
     }
 
+    @Transactional
+    public AccountResponse deposit(Long accountId, DepositRequest request) {
+        Account account = getAccount(accountId);
+        validateDeposit(account, request.amount());
+        account.setBalance(
+                account.getBalance().add(request.amount())
+        );
+        repository.save(account);
+        return mapper.toResponse(account);
+    }
+
     public List<AccountResponse> findAll() {
         List<Account> accounts = repository.findAll();
         return mapper.toResponse(accounts);
@@ -65,5 +79,20 @@ public class AccountService {
                         new ResourceNotFoundException(
                                 ACCOUNT_NOT_FOUND));
         return mapper.toResponse(account);
+    }
+
+    private void validateDeposit(Account account, BigDecimal amount) {
+        if (amount.compareTo(BigDecimal.ZERO) <= 0) {
+            throw new InvalidDepositAmountException("Deposit amount must be greater than zero");
+        }
+
+        if (account.getStatus() != AccountStatus.ACTIVE) {
+            throw new AccountFrozenException("Account is not active");
+        }
+    }
+
+    private Account getAccount(Long id){
+        return repository.findById(id).orElseThrow(()->
+                new ResourceNotFoundException(ACCOUNT_NOT_FOUND + " : " + id));
     }
 }
