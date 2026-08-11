@@ -37,12 +37,9 @@ public class AccountService {
 
     @Transactional
     public AccountResponse update(Long id, UpdateAccountRequest request) {
-        Account account = repository.findById(id).orElseThrow(() ->
-                new ResourceNotFoundException(ACCOUNT_NOT_FOUND + " with id : " + id));
+        Account account = getAccount(id);
         mapper.updateEntity(request, account);
-
-        Account updated = repository.save(account);
-        return mapper.toResponse(updated);
+        return mapper.toResponse(account);
     }
 
     @Transactional
@@ -68,7 +65,7 @@ public class AccountService {
 
     @Transactional
     public AccountResponse freeze(Long accountId) {
-        Account account = getAccountForUpdate(accountId);
+        Account account = getAccount(accountId);
 
         validateFreezeTransition(account);
 
@@ -78,7 +75,7 @@ public class AccountService {
 
     @Transactional
     public AccountResponse unfreeze(Long accountId) {
-        Account account = getAccountForUpdate(accountId);
+        Account account = getAccount(accountId);
 
         validateUnfreezeTransition(account);
 

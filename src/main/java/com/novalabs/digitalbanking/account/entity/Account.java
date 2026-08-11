@@ -43,6 +43,10 @@ public class Account {
     @Column(nullable = false, length = 5)
     private Currency currency;
 
+    @Version
+    @Column(nullable = false)
+    private Long version;
+
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
