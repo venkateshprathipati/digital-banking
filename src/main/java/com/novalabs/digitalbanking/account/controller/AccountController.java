@@ -1,9 +1,6 @@
 package com.novalabs.digitalbanking.account.controller;
 
-import com.novalabs.digitalbanking.account.dto.AccountResponse;
-import com.novalabs.digitalbanking.account.dto.CreateAccountRequest;
-import com.novalabs.digitalbanking.account.dto.DepositRequest;
-import com.novalabs.digitalbanking.account.dto.UpdateAccountRequest;
+import com.novalabs.digitalbanking.account.dto.*;
 import com.novalabs.digitalbanking.account.service.AccountService;
 import com.novalabs.digitalbanking.common.response.ApiResponse;
 import com.novalabs.digitalbanking.common.response.ApiResponseFactory;
@@ -107,5 +104,22 @@ public class AccountController {
         return ResponseEntity.ok(factory.ok(
                 response, "Amount deposited successfully", servletRequest.getRequestURI()
         ));
+    }
+
+    @PostMapping("/{id}/withdraw")
+    @PreAuthorize("hasAnyRole('CUSTOMER','EMPLOYEE','ADMIN')")
+    public ResponseEntity<ApiResponse<AccountResponse>> withdraw(
+            @PathVariable Long id,
+            @Valid @RequestBody WithdrawRequest request,
+            HttpServletRequest servletRequest
+    ) {
+        AccountResponse response = accountService.withdraw(id, request);
+        return ResponseEntity.ok(
+                factory.ok(
+                        response,
+                        "Amount withdrawn successfully",
+                        servletRequest.getRequestURI()
+                )
+        );
     }
 }

@@ -1,9 +1,6 @@
 package com.novalabs.digitalbanking.account.service;
 
-import com.novalabs.digitalbanking.account.dto.AccountResponse;
-import com.novalabs.digitalbanking.account.dto.CreateAccountRequest;
-import com.novalabs.digitalbanking.account.dto.DepositRequest;
-import com.novalabs.digitalbanking.account.dto.UpdateAccountRequest;
+import com.novalabs.digitalbanking.account.dto.*;
 import com.novalabs.digitalbanking.account.entity.Account;
 import com.novalabs.digitalbanking.account.enums.AccountStatus;
 import com.novalabs.digitalbanking.account.enums.Currency;
@@ -11,6 +8,7 @@ import com.novalabs.digitalbanking.account.generator.AccountNumberGenerator;
 import com.novalabs.digitalbanking.account.mapper.AccountMapper;
 import com.novalabs.digitalbanking.account.repository.AccountRepository;
 import com.novalabs.digitalbanking.common.exception.AccountFrozenException;
+import com.novalabs.digitalbanking.common.exception.InsufficientBalanceException;
 import com.novalabs.digitalbanking.common.exception.InvalidDepositAmountException;
 import com.novalabs.digitalbanking.common.exception.ResourceNotFoundException;
 import jakarta.transaction.Transactional;
@@ -60,6 +58,19 @@ public class AccountService {
         return mapper.toResponse(account);
     }
 
+    @Transactional
+    public AccountResponse withdraw(Long accountId, WithdrawRequest request) {
+        Account account = repository.findByIdForUpdate(accountId)
+                .orElseThrow(() ->
+                        new ResourceNotFoundException(
+                                ACCOUNT_NOT_FOUND + ":" + accountId
+                        ));
+
+        validateWithdrawal(account, request.amount());
+        account.setBalance(account.getBalance().subtract(request.amount()));
+        return mapper.toResponse(account);
+    }
+
     public List<AccountResponse> findAll() {
         List<Account> accounts = repository.findAll();
         return mapper.toResponse(accounts);
@@ -91,8 +102,20 @@ public class AccountService {
         }
     }
 
-    private Account getAccount(Long id){
-        return repository.findById(id).orElseThrow(()->
+    private Account getAccount(Long id) {
+        return repository.findById(id).orElseThrow(() ->
                 new ResourceNotFoundException(ACCOUNT_NOT_FOUND + " : " + id));
+    }
+
+    private void validateWithdrawal(Account account, BigDecimal amount) {
+        if (account.getStatus() != AccountStatus.ACTIVE) {
+            throw new AccountFrozenException("Account is not active");
+        }
+
+        BigDecimal balance = account.getBalance();
+
+        if (balance.compareTo(amount) < 0) {
+            throw new InsufficientBalanceException("Insufficient balance for withdrawal");
+        }
     }
 }
