@@ -96,6 +96,7 @@ public class AccountController {
     }
 
     @PostMapping("/{id}/deposit")
+    @PreAuthorize("hasAnyRole('CUSTOMER','EMPLOYEE','ADMIN')")
     public ResponseEntity<ApiResponse<AccountResponse>> deposit(
             @PathVariable Long id,
             @Valid @RequestBody DepositRequest request,
@@ -118,6 +119,38 @@ public class AccountController {
                 factory.ok(
                         response,
                         "Amount withdrawn successfully",
+                        servletRequest.getRequestURI()
+                )
+        );
+    }
+
+    @PostMapping("/{id}/freeze")
+    @PreAuthorize("hasAnyRole('EMPLOYEE','ADMIN')")
+    public ResponseEntity<ApiResponse<AccountResponse>> freeze(
+            @PathVariable Long id, HttpServletRequest servletRequest
+    ) {
+        AccountResponse response = accountService.freeze(id);
+
+        return ResponseEntity.ok(
+                factory.ok(
+                        response,
+                        "Account frozen successfully",
+                        servletRequest.getRequestURI()
+                )
+        );
+    }
+
+    @PostMapping("/{id}/unfreeze")
+    @PreAuthorize("hasAnyRole('EMPLOYEE','ADMIN')")
+    public ResponseEntity<ApiResponse<AccountResponse>> unfreeze(
+            @PathVariable Long id,
+            HttpServletRequest servletRequest
+    ) {
+        AccountResponse response = accountService.unfreeze(id);
+        return ResponseEntity.ok(
+                factory.ok(
+                        response,
+                        "Account unfrozen successfully",
                         servletRequest.getRequestURI()
                 )
         );
