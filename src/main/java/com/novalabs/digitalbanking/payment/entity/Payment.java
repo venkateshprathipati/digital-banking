@@ -82,6 +82,14 @@ public class Payment {
     )
     private LocalDateTime createdAt;
 
+    @CreationTimestamp
+    @Column(
+            name = "updated_at",
+            nullable = false,
+            updatable = false
+    )
+    private LocalDateTime updatedAt;
+
     @Builder
     private Payment(
             String paymentReference,
@@ -105,7 +113,7 @@ public class Payment {
         this.status = PaymentStatus.PENDING;
     }
 
-    private void markProcessing() {
+    public void markProcessing() {
         if (status != PaymentStatus.PENDING) {
             throw new IllegalStateException(
                     "Only PENDING payments can move to PROCESSING"
@@ -115,7 +123,7 @@ public class Payment {
         this.status = PaymentStatus.PROCESSING;
     }
 
-    private void markCompleted() {
+    public void markCompleted() {
         if (status != PaymentStatus.PROCESSING) {
             throw new IllegalStateException(
                     "Only PROCESSING payments can move to COMPLETED"
@@ -125,7 +133,7 @@ public class Payment {
         this.status = PaymentStatus.COMPLETED;
     }
 
-    private void markFailed() {
+    public void markFailed() {
         if (status != PaymentStatus.PROCESSING) {
             throw new IllegalStateException(
                     "Only PROCESSING payments can move to FAILED"
