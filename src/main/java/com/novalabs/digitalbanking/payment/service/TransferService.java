@@ -11,9 +11,9 @@ import com.novalabs.digitalbanking.payment.dto.TransferRequest;
 import com.novalabs.digitalbanking.payment.dto.TransferResponse;
 import com.novalabs.digitalbanking.payment.entity.Payment;
 import com.novalabs.digitalbanking.payment.repository.PaymentRepository;
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.util.UUID;
