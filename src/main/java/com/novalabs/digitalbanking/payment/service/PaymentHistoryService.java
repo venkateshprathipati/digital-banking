@@ -15,7 +15,6 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class PaymentHistoryService {
 
-    private static final int DEFAULT_PAGE_SIZE = 20;
     private static final int MAX_PAGE_SIZE = 100;
 
     private final PaymentRepository paymentRepository;
@@ -29,11 +28,12 @@ public class PaymentHistoryService {
         validatePagination(page, size);
 
         int normalizedSize = Math.min(size, MAX_PAGE_SIZE);
+
         PageRequest pageable = PageRequest.of(
                 page,
                 normalizedSize,
                 Sort.by(
-                        Sort.Order.desc("CreatedAt"),
+                        Sort.Order.desc("createdAt"),
                         Sort.Order.desc("id")
                 )
         );
@@ -74,12 +74,17 @@ public class PaymentHistoryService {
     }
 
     private void validatePagination(int page, int size) {
+
         if (page < 0) {
-            throw new IllegalArgumentException("Page must be greater than or equal to zero");
+            throw new IllegalArgumentException(
+                    "Page must be greater than or equal to zero"
+            );
         }
 
         if (size <= 0) {
-            throw new IllegalArgumentException("Size must be greater than zero");
+            throw new IllegalArgumentException(
+                    "Size must be greater than zero"
+            );
         }
     }
 }

@@ -8,10 +8,11 @@ import com.novalabs.digitalbanking.payment.dto.TransferRequest;
 import com.novalabs.digitalbanking.payment.entity.Payment;
 import com.novalabs.digitalbanking.payment.repository.PaymentRepository;
 import org.junit.jupiter.api.BeforeEach;
-import org.mockito.Spy;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 
 import java.math.BigDecimal;
 
@@ -22,7 +23,7 @@ import static org.mockito.Mockito.doThrow;
 
 @SpringBootTest
 @ActiveProfiles("test")
-public class TransferServiceRollbackTest {
+class TransferServiceRollbackTest {
 
     @Autowired
     private TransferService transferService;
@@ -33,7 +34,7 @@ public class TransferServiceRollbackTest {
     @Autowired
     private PaymentRepository paymentRepository;
 
-    @Spy
+    @MockitoSpyBean
     private PaymentRepository paymentRepositorySpy;
 
     private Account sourceAccount;
@@ -67,6 +68,7 @@ public class TransferServiceRollbackTest {
         );
     }
 
+    @Test
     void shouldRollbackAccountBalancesWhenPaymentSaveFails() {
 
         //Arrange
