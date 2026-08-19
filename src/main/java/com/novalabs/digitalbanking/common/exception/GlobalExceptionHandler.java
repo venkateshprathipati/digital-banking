@@ -1,5 +1,6 @@
 package com.novalabs.digitalbanking.common.exception;
 
+import com.novalabs.digitalbanking.common.response.ApiResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -12,6 +13,7 @@ import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 import java.time.LocalDateTime;
 import java.util.LinkedHashMap;
@@ -151,7 +153,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(BadCredentialsException.class)
     public ResponseEntity<ApiError> handleBadCredentials(
-            BadCredentialsException ex,HttpServletRequest request) {
+            BadCredentialsException ex, HttpServletRequest request) {
 
         ApiError response = ApiError.builder()
                 .timestamp(LocalDateTime.now())
@@ -170,7 +172,7 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ApiError> handleAuthorizationDenied(
             AuthorizationDeniedException ex,
             HttpServletRequest request
-    ){
+    ) {
         log.warn("Authorization denied: {}", ex.getMessage());
         ApiError response = ApiError.builder()
                 .timestamp(LocalDateTime.now())
@@ -188,7 +190,7 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ApiError> handleOptimisticFailureException(
             ObjectOptimisticLockingFailureException exception,
             HttpServletRequest request
-    ){
+    ) {
         log.warn("Optimistic locking conflict at [{}]", exception.getMessage());
 
         ApiError response = ApiError.builder()
@@ -201,6 +203,25 @@ public class GlobalExceptionHandler {
                 .build();
 
         return ResponseEntity.status(HttpStatus.CONFLICT)
+                .body(response);
+    }
+
+    @ExceptionHandler(NoResourceFoundException.class)
+    public ResponseEntity<ApiError> handleNoResourceFound(
+            NoResourceFoundException ex, HttpServletRequest request) {
+
+        log.error("No resource found Exception", ex);
+
+        ApiError response = ApiError.builder()
+                .timestamp(LocalDateTime.now())
+                .status(HttpStatus.NOT_FOUND.value())
+                .error(HttpStatus.NOT_FOUND.getReasonPhrase())
+                .errorCode(ErrorCode.RESOURCE_NOT_FOUND.getCode())
+                .message("Endpoint not found")
+                .path(request.getRequestURI())
+                .build();
+
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
                 .body(response);
     }
 

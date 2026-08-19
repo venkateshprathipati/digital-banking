@@ -30,6 +30,7 @@ public enum ErrorCode {
     // System Errors
     INTERNAL_SERVER_ERROR("SYS_001", "Internal server error", HttpStatus.INTERNAL_SERVER_ERROR),
     DATABASE_ERROR("SYS_002", "Database error", HttpStatus.CONFLICT),
+    RESOURCE_NOT_FOUND("SYS_003", "Resource not found",HttpStatus.NOT_FOUND),
     // Concurrency
     OPTIMISTIC_LOCK_CONFLICT("CON_001", "Resource was modified by another transaction", HttpStatus.CONFLICT);
 
