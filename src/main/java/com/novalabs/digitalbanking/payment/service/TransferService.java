@@ -3,6 +3,8 @@ package com.novalabs.digitalbanking.payment.service;
 import com.novalabs.digitalbanking.account.entity.Account;
 import com.novalabs.digitalbanking.account.repository.AccountRepository;
 import com.novalabs.digitalbanking.common.exception.ResourceNotFoundException;
+import com.novalabs.digitalbanking.fraud.engine.FraudEngine;
+import com.novalabs.digitalbanking.fraud.model.FraudContext;
 import com.novalabs.digitalbanking.payment.dto.TransferRequest;
 import com.novalabs.digitalbanking.payment.dto.TransferResponse;
 import com.novalabs.digitalbanking.payment.entity.Payment;
@@ -24,6 +26,7 @@ public class TransferService {
     private final TransferValidator transferValidator;
     private final AccountTransferValidator accountTransferValidator;
     private final PaymentFactory paymentFactory;
+    private final FraudEngine fraudEngine;
 
     @Transactional
     public TransferResponse transfer(TransferRequest request) {
@@ -59,6 +62,12 @@ public class TransferService {
                 destinationAccount,
                 request.amount(),
                 request.currency());
+
+        fraudEngine.evaluate(new FraudContext(
+                sourceAccount,
+                destinationAccount,
+                request.amount()
+        ));
 
         sourceAccount.setBalance(
                 sourceAccount.getBalance().subtract(request.amount())
