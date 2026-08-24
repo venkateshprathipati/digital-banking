@@ -5,6 +5,7 @@ import com.novalabs.digitalbanking.account.repository.AccountRepository;
 import com.novalabs.digitalbanking.common.exception.ResourceNotFoundException;
 import com.novalabs.digitalbanking.fraud.engine.FraudEngine;
 import com.novalabs.digitalbanking.fraud.model.FraudContext;
+import com.novalabs.digitalbanking.notification.event.PaymentCompletedEvent;
 import com.novalabs.digitalbanking.payment.dto.TransferRequest;
 import com.novalabs.digitalbanking.payment.dto.TransferResponse;
 import com.novalabs.digitalbanking.payment.entity.Payment;
@@ -13,6 +14,7 @@ import com.novalabs.digitalbanking.payment.repository.PaymentRepository;
 import com.novalabs.digitalbanking.payment.validation.AccountTransferValidator;
 import com.novalabs.digitalbanking.payment.validation.TransferValidator;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -27,6 +29,7 @@ public class TransferService {
     private final AccountTransferValidator accountTransferValidator;
     private final PaymentFactory paymentFactory;
     private final FraudEngine fraudEngine;
+    private final ApplicationEventPublisher eventPublisher;
 
     @Transactional
     public TransferResponse transfer(TransferRequest request) {
@@ -87,6 +90,16 @@ public class TransferService {
         payment.markCompleted();
 
         paymentRepository.save(payment);
+
+        eventPublisher.publishEvent(
+                new PaymentCompletedEvent(
+                        payment.getPaymentReference(),
+                        sourceAccount.getId(),
+                        destinationAccount.getId(),
+                        payment.getAmount(),
+                        payment.getCurrency()
+                )
+        );
 
         return new TransferResponse(
                 payment.getPaymentReference(),
