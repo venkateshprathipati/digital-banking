@@ -24,6 +24,15 @@ spring:
       leak-detection-threshold: 60000
       auto-commit: false
 
+  data:
+    redis:
+      host: localhost
+      port: 6379
+      connect-timeout: 2s
+      timeout: 2s
+      repositories:
+        enabled: false
+
   jpa:
     open-in-view: false
     show-sql: true
