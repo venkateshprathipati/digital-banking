@@ -19,7 +19,6 @@ public class TransactionService {
 
     /**
      * Fetch transaction history for an account.
-     *
      * Transactions are returned newest first.
      */
     public List<TransactionResponse> findByAccountId(Long accountId) {
