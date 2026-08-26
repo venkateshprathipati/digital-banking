@@ -13,6 +13,15 @@ spring:
     password: bankuser
     driver-class-name: org.postgresql.Driver
 
+  data:
+    redis:
+      host: localhost
+      port: 6379
+      connect-timeout: 2s
+      timeout: 2s
+      repositories:
+        enabled: false
+
     hikari:
       pool-name: BankingHikariCP
       minimum-idle: 5
