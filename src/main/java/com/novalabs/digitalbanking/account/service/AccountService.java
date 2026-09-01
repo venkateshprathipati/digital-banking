@@ -9,6 +9,8 @@ import com.novalabs.digitalbanking.account.mapper.AccountMapper;
 import com.novalabs.digitalbanking.account.repository.AccountRepository;
 import com.novalabs.digitalbanking.common.exception.*;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
@@ -35,6 +37,7 @@ public class AccountService {
     }
 
     @Transactional
+    @CacheEvict(cacheNames = "accounts",key = "#id")
     public AccountResponse update(Long id, UpdateAccountRequest request) {
         Account account = getAccount(id);
         mapper.updateEntity(request, account);
@@ -42,6 +45,7 @@ public class AccountService {
     }
 
     @Transactional
+    @CacheEvict(cacheNames = "accounts",key = "#accountId")
     public AccountResponse deposit(Long accountId, DepositRequest request) {
         Account account = getAccount(accountId);
 
@@ -54,6 +58,7 @@ public class AccountService {
     }
 
     @Transactional
+    @CacheEvict(cacheNames = "accounts",key = "#accountId")
     public AccountResponse withdraw(Long accountId, WithdrawRequest request) {
         Account account = getAccountForUpdate(accountId);
 
@@ -63,6 +68,7 @@ public class AccountService {
     }
 
     @Transactional
+    @CacheEvict(cacheNames = "accounts",key = "#accountId")
     public AccountResponse freeze(Long accountId) {
         Account account = getAccount(accountId);
 
@@ -73,6 +79,7 @@ public class AccountService {
     }
 
     @Transactional
+    @CacheEvict(cacheNames = "accounts",key = "#accountId")
     public AccountResponse unfreeze(Long accountId) {
         Account account = getAccount(accountId);
 
@@ -87,6 +94,7 @@ public class AccountService {
         return mapper.toResponse(accounts);
     }
 
+    @Cacheable(cacheNames = "accounts", key = "#id")
     public AccountResponse findById(Long id) {
         Account account = repository.findById(id)
                 .orElseThrow(() ->
