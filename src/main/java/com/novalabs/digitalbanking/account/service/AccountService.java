@@ -51,9 +51,7 @@ public class AccountService {
         Account account = getAccount(accountId);
 
         validateDeposit(account, request.amount());
-        account.setBalance(
-                account.getBalance().add(request.amount())
-        );
+        account.setBalance(account.getBalance().add(request.amount()));
         repository.save(account);
         return mapper.toResponse(account);
     }
@@ -69,12 +67,11 @@ public class AccountService {
     }
 
     @Transactional
-    @CacheEvict(cacheNames = "accounts", key = "#accountId")
+    @CacheEvict(cacheNames = "accounts", key = "#accountId", beforeInvocation = false)
     public AccountResponse freeze(Long accountId) {
         Account account = getAccount(accountId);
 
         validateFreezeTransition(account);
-
         account.setStatus(AccountStatus.FROZEN);
         return mapper.toResponse(account);
     }
@@ -85,7 +82,6 @@ public class AccountService {
         Account account = getAccount(accountId);
 
         validateUnfreezeTransition(account);
-
         account.setStatus(AccountStatus.ACTIVE);
         return mapper.toResponse(account);
     }
@@ -104,11 +100,8 @@ public class AccountService {
     }
 
     public AccountResponse findByAccountNumber(String accountNumber) {
-        Account account = repository
-                .findByAccountNumber(accountNumber)
-                .orElseThrow(() ->
-                        new ResourceNotFoundException(
-                                ACCOUNT_NOT_FOUND));
+        Account account = repository.findByAccountNumber(accountNumber)
+                .orElseThrow(() -> new ResourceNotFoundException(ACCOUNT_NOT_FOUND));
         return mapper.toResponse(account);
     }
 
@@ -141,25 +134,18 @@ public class AccountService {
 
     public void validateFreezeTransition(Account account) {
         if (account.getStatus() != AccountStatus.ACTIVE) {
-            throw new InvalidAccountStateException(
-                    "Only ACTIVE accounts can be frozen"
-            );
+            throw new InvalidAccountStateException("Only ACTIVE accounts can be frozen");
         }
     }
 
     public void validateUnfreezeTransition(Account account) {
         if (account.getStatus() != AccountStatus.FROZEN) {
-            throw new InvalidAccountStateException(
-                    "Only FROZEN accounts can be unfrozen"
-            );
+            throw new InvalidAccountStateException("Only FROZEN accounts can be unfrozen");
         }
     }
 
     private Account getAccountForUpdate(Long id) {
         return repository.findByIdForUpdate(id)
-                .orElseThrow(() ->
-                        new ResourceNotFoundException(
-                                ACCOUNT_NOT_FOUND + " : " + id
-                        ));
+                .orElseThrow(() -> new ResourceNotFoundException(ACCOUNT_NOT_FOUND + " : " + id));
     }
 }
