@@ -13,6 +13,7 @@ import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
 import java.math.BigDecimal;
 import java.util.List;
 
@@ -37,7 +38,7 @@ public class AccountService {
     }
 
     @Transactional
-    @CacheEvict(cacheNames = "accounts",key = "#id")
+    @CacheEvict(cacheNames = "accounts", key = "#id", beforeInvocation = false)
     public AccountResponse update(Long id, UpdateAccountRequest request) {
         Account account = getAccount(id);
         mapper.updateEntity(request, account);
@@ -45,7 +46,7 @@ public class AccountService {
     }
 
     @Transactional
-    @CacheEvict(cacheNames = "accounts",key = "#accountId")
+    @CacheEvict(cacheNames = "accounts", key = "#accountId", beforeInvocation = false)
     public AccountResponse deposit(Long accountId, DepositRequest request) {
         Account account = getAccount(accountId);
 
@@ -58,7 +59,7 @@ public class AccountService {
     }
 
     @Transactional
-    @CacheEvict(cacheNames = "accounts",key = "#accountId")
+    @CacheEvict(cacheNames = "accounts", key = "#accountId", beforeInvocation = false)
     public AccountResponse withdraw(Long accountId, WithdrawRequest request) {
         Account account = getAccountForUpdate(accountId);
 
@@ -68,7 +69,7 @@ public class AccountService {
     }
 
     @Transactional
-    @CacheEvict(cacheNames = "accounts",key = "#accountId")
+    @CacheEvict(cacheNames = "accounts", key = "#accountId")
     public AccountResponse freeze(Long accountId) {
         Account account = getAccount(accountId);
 
@@ -79,7 +80,7 @@ public class AccountService {
     }
 
     @Transactional
-    @CacheEvict(cacheNames = "accounts",key = "#accountId")
+    @CacheEvict(cacheNames = "accounts", key = "#accountId", beforeInvocation = false)
     public AccountResponse unfreeze(Long accountId) {
         Account account = getAccount(accountId);
 
