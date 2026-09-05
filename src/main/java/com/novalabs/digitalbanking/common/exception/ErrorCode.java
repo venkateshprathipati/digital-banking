@@ -21,7 +21,17 @@ public enum ErrorCode {
     // Payment Errors (Future)
     INSUFFICIENT_BALANCE("PAY_001", "Insufficient balance", HttpStatus.CONFLICT),
     PAYMENT_FAILED("PAY_002", "Payment failed", HttpStatus.BAD_REQUEST),
+    IDEMPOTENCY_KEY_REUSED(
+            "PAY_003",
+            "Idempotency key was already used with a different request",
+            HttpStatus.CONFLICT
+    ),
 
+    IDEMPOTENCY_REQUEST_PROCESSING(
+            "PAY_004",
+            "Request with this idempotency key is already being processed",
+            HttpStatus.CONFLICT
+    ),
     // Authentication/Authorization
     UNAUTHORIZED_OPERATION("AUTH_001", "Unauthorized operation", HttpStatus.FORBIDDEN),
     USERNAME_ALREADY_EXISTS("AUTH_002", "Username is already registered", HttpStatus.CONFLICT),
