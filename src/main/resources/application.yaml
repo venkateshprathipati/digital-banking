@@ -127,3 +127,9 @@ bank:
   interest:
     savings-rate: 3.5
     fixed-deposit-rate: 7.25
+
+banking:
+  scheduled-payment:
+    enabled: true
+    poll-delay-ms: 10000
+    batch-size: 50

@@ -83,3 +83,7 @@ bank:
   account:
     max-accounts-per-customer: 3
     auto-freeze-days: 60
+
+banking:
+  scheduled-payment:
+    enabled: false
