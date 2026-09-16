@@ -92,3 +92,9 @@ bank:
   account:
     max-accounts-per-customer: 10
     auto-freeze-days: 180
+
+banking:
+  scheduled-payment:
+    enabled: true
+    poll-delay-ms: 5000
+    batch-size: 100
