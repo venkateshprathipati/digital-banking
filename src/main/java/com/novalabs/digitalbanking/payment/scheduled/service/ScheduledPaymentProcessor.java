@@ -2,7 +2,6 @@ package com.novalabs.digitalbanking.payment.scheduled.service;
 
 import com.novalabs.digitalbanking.payment.dto.TransferRequest;
 import com.novalabs.digitalbanking.payment.dto.TransferResponse;
-import com.novalabs.digitalbanking.payment.entity.Payment;
 import com.novalabs.digitalbanking.payment.scheduled.entity.ScheduledPayment;
 import com.novalabs.digitalbanking.payment.scheduled.enums.ScheduledPaymentStatus;
 import com.novalabs.digitalbanking.payment.scheduled.repository.ScheduledPaymentRepository;
@@ -39,7 +38,7 @@ public class ScheduledPaymentProcessor {
         }
 
         List<ScheduledPayment> duePayments =
-                scheduledPaymentRepository.findDuePayments(
+                scheduledPaymentRepository.findDuePaymentsForUpdate(
                         ScheduledPaymentStatus.SCHEDULED,
                         Instant.now(),
                         PageRequest.of(0, batchSize)
@@ -48,15 +47,17 @@ public class ScheduledPaymentProcessor {
             return;
         }
 
-        log.info(
-                "Found {} scheduled payments ready for processing", duePayments.size()
-        );
+        log.info("Found {} scheduled payments ready for processing", duePayments.size());
 
         for (ScheduledPayment scheduledPayment : duePayments) {
             processSinglePayment(scheduledPayment.getId());
         }
     }
 
+    /**
+     * Processes a payment that has already been selected using
+     * a pessimistic database lock.
+     */
     @Transactional
     public void processSinglePayment(Long scheduledPaymentId) {
         ScheduledPayment scheduledPayment =
@@ -68,30 +69,20 @@ public class ScheduledPaymentProcessor {
             return;
         }
 
+        processSinglePayment(scheduledPayment);
+    }
+
+    @Transactional
+    protected void processSinglePayment(ScheduledPayment scheduledPayment) {
         if (scheduledPayment.getStatus() != ScheduledPaymentStatus.SCHEDULED) {
-            log.debug("Skipping scheduled payment {} becuase status is {}", scheduledPaymentId, scheduledPayment.getStatus());
+            log.debug("Skipping scheduled payment {} becuase status is {}", scheduledPayment.getId(), scheduledPayment.getStatus());
             return;
         }
-
         log.info("Starting scheduled payment processing: id={}, scheduledAt={}", scheduledPayment.getId(), scheduledPayment.getScheduledAt());
+
         try {
-            /**
-             * Move the schedule into PROCESSING before executing the actual transfer.
-             */
             scheduledPayment.markProcessing();
-            /**
-             * IMPORTANT:
-             * Do NOT directly manipulate Account.balance here.
-             *
-             * The existing transfer/idempotency path remains responsible
-             * for:
-             * - account validation
-             * - deterministic account locking
-             * - balance validation
-             * - fraud checks
-             * - Payment creation
-             * - transaction handling
-             */
+
             TransferRequest transferRequest =
                     new TransferRequest(
                             scheduledPayment.getSourceAccountId(),
@@ -123,6 +114,5 @@ public class ScheduledPaymentProcessor {
             log.error("Scheduled payment failed: id={},reason={}", scheduledPayment.getId(),
                     exception.getMessage(), exception);
         }
-
     }
 }

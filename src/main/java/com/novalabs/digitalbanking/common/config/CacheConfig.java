@@ -2,6 +2,8 @@ package com.novalabs.digitalbanking.common.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.cache.CacheManager;
+import org.springframework.cache.annotation.EnableCaching;
+import org.springframework.cache.interceptor.SimpleCacheErrorHandler;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.redis.cache.RedisCacheConfiguration;
@@ -14,15 +16,20 @@ import org.springframework.data.redis.serializer.StringRedisSerializer;
 import java.time.Duration;
 
 @Configuration
+@EnableCaching
 public class CacheConfig {
 
     @Bean
-    public CacheManager cacheManager(RedisConnectionFactory redisConnectionFactory, ObjectMapper objectMapper) {
-        GenericJackson2JsonRedisSerializer valueSerializer = new GenericJackson2JsonRedisSerializer(objectMapper);
+    public CacheManager cacheManager(
+            RedisConnectionFactory redisConnectionFactory,
+            ObjectMapper objectMapper,
+            CacheProperties properties) {
+        GenericJackson2JsonRedisSerializer valueSerializer =
+                new GenericJackson2JsonRedisSerializer(objectMapper);
 
         RedisCacheConfiguration cacheConfiguration =
                 RedisCacheConfiguration.defaultCacheConfig()
-                        .entryTtl(Duration.ofMinutes(5))
+                        .entryTtl(properties.accountTtl())
                         .disableCachingNullValues()
                         .serializeKeysWith(
                                 RedisSerializationContext.SerializationPair.fromSerializer(
@@ -36,7 +43,13 @@ public class CacheConfig {
                         );
         return RedisCacheManager.builder(redisConnectionFactory)
                 .cacheDefaults(cacheConfiguration)
+                .transactionAware()
                 .build();
 
+    }
+
+    @Bean
+    public SimpleCacheErrorHandler cacheErrorHandler() {
+        return new SimpleCacheErrorHandler();
     }
 }
