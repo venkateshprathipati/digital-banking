@@ -129,6 +129,8 @@ bank:
     fixed-deposit-rate: 7.25
 
 banking:
+  cache:
+    account-ttl: 5m
   scheduled-payment:
     enabled: true
     poll-delay-ms: 10000

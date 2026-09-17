@@ -85,5 +85,7 @@ bank:
     auto-freeze-days: 60
 
 banking:
+  cache:
+    account-ttl: 5m
   scheduled-payment:
     enabled: false
