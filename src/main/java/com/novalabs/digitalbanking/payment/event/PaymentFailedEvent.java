@@ -1,4 +1,4 @@
-package com.novalabs.digitalbanking.notification.event;
+package com.novalabs.digitalbanking.payment.event;
 
 public record PaymentFailedEvent(
         String paymentReference,
