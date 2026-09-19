@@ -1,9 +1,9 @@
 package com.novalabs.digitalbanking.notification.listener;
 
-import com.novalabs.digitalbanking.notification.event.FraudDetectedEvent;
-import com.novalabs.digitalbanking.notification.event.PaymentCompletedEvent;
-import com.novalabs.digitalbanking.notification.event.PaymentFailedEvent;
-import com.novalabs.digitalbanking.notification.event.PaymentRejectedEvent;
+import com.novalabs.digitalbanking.payment.event.FraudDetectedEvent;
+import com.novalabs.digitalbanking.payment.event.PaymentCompletedEvent;
+import com.novalabs.digitalbanking.payment.event.PaymentFailedEvent;
+import com.novalabs.digitalbanking.payment.event.PaymentRejectedEvent;
 import com.novalabs.digitalbanking.notification.service.NotificationService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

@@ -5,7 +5,7 @@ import com.novalabs.digitalbanking.account.repository.AccountRepository;
 import com.novalabs.digitalbanking.common.exception.ResourceNotFoundException;
 import com.novalabs.digitalbanking.fraud.engine.FraudEngine;
 import com.novalabs.digitalbanking.fraud.model.FraudContext;
-import com.novalabs.digitalbanking.notification.event.PaymentCompletedEvent;
+import com.novalabs.digitalbanking.payment.event.PaymentCompletedEvent;
 import com.novalabs.digitalbanking.payment.dto.TransferRequest;
 import com.novalabs.digitalbanking.payment.dto.TransferResponse;
 import com.novalabs.digitalbanking.payment.entity.Payment;

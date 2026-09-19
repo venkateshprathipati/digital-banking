@@ -1,14 +1,15 @@
-package com.novalabs.digitalbanking.notification.event;
+package com.novalabs.digitalbanking.payment.event;
 
 import com.novalabs.digitalbanking.account.enums.Currency;
 
 import java.math.BigDecimal;
 
-public record PaymentCompletedEvent(
+public record PaymentRejectedEvent(
         String paymentReference,
         Long sourceAccountId,
         Long destinationAccountId,
         BigDecimal amount,
-        Currency currency
+        Currency currency,
+        String reason
 ) {
 }
