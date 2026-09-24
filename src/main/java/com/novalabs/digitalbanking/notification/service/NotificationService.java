@@ -4,28 +4,16 @@ import com.novalabs.digitalbanking.payment.event.FraudDetectedEvent;
 import com.novalabs.digitalbanking.payment.event.PaymentCompletedEvent;
 import com.novalabs.digitalbanking.payment.event.PaymentFailedEvent;
 import com.novalabs.digitalbanking.payment.event.PaymentRejectedEvent;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 @Service
+@RequiredArgsConstructor
 @Slf4j
 public class NotificationService {
 
-    public void notifyPaymentFailed(
-            PaymentFailedEvent event
-    ) {
-        log.info(
-                "NOTIFICATION | event=PAYMENT_FAILED" +
-                        " | paymentReference={}" +
-                        " | sourceAccountId={}" +
-                        " | destinationAccountId={}" +
-                        " | reason={}",
-                event.paymentReference(),
-                event.sourceAccountId(),
-                event.destinationAccountId(),
-                event.reason()
-        );
-    }
+    private final NotificationSender notificationSender;
 
     public void notifyPaymentCompleted(
             PaymentCompletedEvent event
@@ -43,6 +31,38 @@ public class NotificationService {
                 event.amount(),
                 event.currency()
         );
+
+        String message = String.format(
+                "Payment %s completed successfully. Amount=%s %s",
+                event.paymentReference(),
+                event.amount(),
+                event.currency()
+        );
+
+        notificationSender.send(
+                event.paymentReference(),
+                message
+        );
+
+    }
+
+    public void notifyPaymentFailed(
+            PaymentFailedEvent event
+    ) {
+        log.info(
+                "NOTIFICATION | event=PAYMENT_FAILED" +
+                        " | paymentReference={}" +
+                        " | sourceAccountId={}" +
+                        " | destinationAccountId={}" +
+                        " | reason={}",
+                event.paymentReference(),
+                event.sourceAccountId(),
+                event.destinationAccountId(),
+                event.reason()
+        );
+
+        String message = String.format("Payment %s failed. Reason=%s", event.paymentReference(), event.reason());
+        notificationSender.send(event.paymentReference(), message);
     }
 
     public void notifyPaymentRejected(
@@ -63,6 +83,16 @@ public class NotificationService {
                 event.currency(),
                 event.reason()
         );
+        String message = String.format(
+                "Payment %s rejected. Reason=%s",
+                event.paymentReference(),
+                event.reason()
+        );
+
+        notificationSender.send(
+                event.paymentReference(),
+                message
+        );
     }
 
     public void notifyFraudDetected(
@@ -80,6 +110,17 @@ public class NotificationService {
                 event.amount(),
                 event.ruleCode(),
                 event.reason()
+        );
+
+        String message = String.format(
+                "Fraud detected for payment %s. Rule=%s",
+                event.paymentReference(),
+                event.ruleCode()
+        );
+
+        notificationSender.send(
+                event.paymentReference(),
+                message
         );
     }
 }
