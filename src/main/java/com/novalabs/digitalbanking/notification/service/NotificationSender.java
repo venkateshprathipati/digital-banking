@@ -21,7 +21,7 @@ public class NotificationSender {
     )
     public void send(String paymentReference, String message) {
         log.info("Sending notification. paymentReference={}", paymentReference);
-        simulateProviderCall();
+        callNotificationProvider(paymentReference, message);
     }
 
     @Recover
@@ -30,7 +30,12 @@ public class NotificationSender {
 
     }
 
-    private void simulateProviderCall(){
-
+    private void callNotificationProvider(
+            String paymentReference,
+            String message
+    ) {
+        // Replace this with the actual HTTP/SMS/email provider call.
+        // Example:
+        //notificationClient.send(paymentReference, message);
     }
 }
