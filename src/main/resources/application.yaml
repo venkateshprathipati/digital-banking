@@ -135,3 +135,8 @@ banking:
     enabled: true
     poll-delay-ms: 10000
     batch-size: 50
+  notification:
+    retry:
+      max-attempts: 3
+      initial-delay-ms: 1000
+      multiplier: 2.0

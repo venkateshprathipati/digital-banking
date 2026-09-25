@@ -89,3 +89,8 @@ banking:
     account-ttl: 5m
   scheduled-payment:
     enabled: false
+  notification:
+    retry:
+      max-attempts: 2
+      initial-delay-ms: 100
+      multiplier: 1.0
