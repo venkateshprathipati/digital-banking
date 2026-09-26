@@ -1,5 +1,6 @@
 package com.novalabs.digitalbanking.notification.service;
 
+import com.novalabs.digitalbanking.notification.idempotency.NotificationIdempotencyService;
 import com.novalabs.digitalbanking.payment.event.FraudDetectedEvent;
 import com.novalabs.digitalbanking.payment.event.PaymentCompletedEvent;
 import com.novalabs.digitalbanking.payment.event.PaymentFailedEvent;
@@ -14,23 +15,33 @@ import org.springframework.stereotype.Service;
 public class NotificationService {
 
     private final NotificationSender notificationSender;
+    private final NotificationIdempotencyService notificationIdempotencyService;
 
     public void notifyPaymentCompleted(
             PaymentCompletedEvent event
     ) {
-        log.info(
-                "NOTIFICATION | event=PAYMENT_COMPLETED" +
-                        " | paymentReference={}" +
-                        " | sourceAccountId={}" +
-                        " | destinationAccountId={}" +
-                        " | amount={}" +
-                        " | currency={}",
-                event.paymentReference(),
-                event.sourceAccountId(),
-                event.destinationAccountId(),
-                event.amount(),
-                event.currency()
-        );
+
+        String notificationKey =
+                buildNotificationKey(
+                        event.paymentReference(),
+                        "PAYMENT_COMPLETED",
+                        "SMS"
+                );
+
+        boolean claimed =
+                notificationIdempotencyService.tryClaim(
+                        notificationKey,
+                        event.paymentReference(),
+                        "PAYMENT_COMPLETED",
+                        "SMS"
+                );
+
+        if (!claimed) {
+            log.info(
+                    "Duplicate notification skipped. notificationKey={}", notificationKey
+            );
+            return;
+        }
 
         String message = String.format(
                 "Payment %s completed successfully. Amount=%s %s",
@@ -39,11 +50,23 @@ public class NotificationService {
                 event.currency()
         );
 
-        notificationSender.send(
-                event.paymentReference(),
-                message
-        );
+        try {
+            notificationSender.send(
+                    event.paymentReference(),
+                    message
+            );
+            notificationIdempotencyService.markCompleted(notificationKey);
+            log.info(
+                    "Notification completed. notificationKey={}", notificationKey
+            );
 
+        } catch (RuntimeException e) {
+            notificationIdempotencyService.markFailed(notificationKey);
+            log.error(
+                    "Notification failed. notificationKey={}", notificationKey, e
+            );
+            throw e;
+        }
     }
 
     public void notifyPaymentFailed(
@@ -122,5 +145,9 @@ public class NotificationService {
                 event.paymentReference(),
                 message
         );
+    }
+
+    private String buildNotificationKey(String paymentReference, String notificationType, String channel) {
+        return paymentReference + ":" + notificationType + ":" + channel;
     }
 }

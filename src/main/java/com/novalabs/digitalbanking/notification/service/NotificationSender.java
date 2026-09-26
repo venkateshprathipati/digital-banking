@@ -27,6 +27,7 @@ public class NotificationSender {
     @Recover
     public void recover(NotificationDeliveryException exception, String paymentReference, String message) {
         log.error("Notification delivery permanently failed after retries. " + "paymentreference={}", paymentReference, exception);
+        throw exception;
 
     }
 
