@@ -12,10 +12,10 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 @EnableCaching
 @EnableScheduling
 @EnableRetry
-public class DigitalbankingApplication {
+public class DigitalBankingApplication {
 
 	public static void main(String[] args) {
-		SpringApplication.run(DigitalbankingApplication.class, args);
+		SpringApplication.run(DigitalBankingApplication.class, args);
 	}
 
 }
