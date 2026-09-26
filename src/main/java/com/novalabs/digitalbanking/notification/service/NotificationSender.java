@@ -27,6 +27,7 @@ public class NotificationSender {
     @Recover
     public void recover(NotificationDeliveryException exception, String paymentReference, String message) {
         log.error("Notification delivery permanently failed after retries. " + "paymentreference={}", paymentReference, exception);
+        throw exception;
 
     }
 
@@ -34,8 +35,13 @@ public class NotificationSender {
             String paymentReference,
             String message
     ) {
-        // Replace this with the actual HTTP/SMS/email provider call.
-        // Example:
-        //notificationClient.send(paymentReference, message);
+        /*
+        * Replace this with actual SMS/email provider call.
+        * Example:
+        * notificationClient.send(
+        * paymentReference,
+        * message
+        * );
+        */
     }
 }
