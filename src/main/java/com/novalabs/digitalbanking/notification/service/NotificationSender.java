@@ -35,8 +35,13 @@ public class NotificationSender {
             String paymentReference,
             String message
     ) {
-        // Replace this with the actual HTTP/SMS/email provider call.
-        // Example:
-        //notificationClient.send(paymentReference, message);
+        /*
+        * Replace this with actual SMS/email provider call.
+        * Example:
+        * notificationClient.send(
+        * paymentReference,
+        * message
+        * );
+        */
     }
 }

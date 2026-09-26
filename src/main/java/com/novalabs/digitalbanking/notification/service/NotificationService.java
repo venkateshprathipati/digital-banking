@@ -20,20 +20,22 @@ public class NotificationService {
     public void notifyPaymentCompleted(
             PaymentCompletedEvent event
     ) {
+        String notificationType = "PAYMENT_COMPLETED";
+        String channel = "SMS";
 
         String notificationKey =
                 buildNotificationKey(
                         event.paymentReference(),
-                        "PAYMENT_COMPLETED",
-                        "SMS"
+                        notificationType,
+                        channel
                 );
 
         boolean claimed =
                 notificationIdempotencyService.tryClaim(
                         notificationKey,
                         event.paymentReference(),
-                        "PAYMENT_COMPLETED",
-                        "SMS"
+                        notificationType,
+                        channel
                 );
 
         if (!claimed) {
@@ -42,6 +44,18 @@ public class NotificationService {
             );
             return;
         }
+
+        log.info("NOTIFICATION | event=PAYMENT_COMPLETED" +
+                        " | paymentReference={}" +
+                        " | sourceAccountId={}" +
+                        " | destinationAccountId={}" +
+                        " | amount={}" +
+                        " | currency={}",
+                event.paymentReference(),
+                event.sourceAccountId(),
+                event.destinationAccountId(),
+                event.amount(),
+                event.currency());
 
         String message = String.format(
                 "Payment %s completed successfully. Amount=%s %s",
@@ -72,6 +86,26 @@ public class NotificationService {
     public void notifyPaymentFailed(
             PaymentFailedEvent event
     ) {
+        String notificationType = "PAYMENT_FAILED";
+        String channel = "SMS";
+
+        String notificationKey =
+                buildNotificationKey(
+                        event.paymentReference(),
+                        notificationType,
+                        channel);
+        boolean claimed =
+                notificationIdempotencyService.tryClaim(
+                        notificationKey,
+                        event.paymentReference(),
+                        notificationType,
+                        channel);
+        if (!claimed) {
+            log.info(
+                    "Duplicate PAYMENT_FAILED notification skipped. " + "paymentReference={}",
+                    event.paymentReference());
+            return;
+        }
         log.info(
                 "NOTIFICATION | event=PAYMENT_FAILED" +
                         " | paymentReference={}" +
@@ -84,8 +118,25 @@ public class NotificationService {
                 event.reason()
         );
 
-        String message = String.format("Payment %s failed. Reason=%s", event.paymentReference(), event.reason());
-        notificationSender.send(event.paymentReference(), message);
+        String message =
+                String.format("Payment %s failed. Reason=%s", event.paymentReference(),
+                        event.reason());
+        try {
+            notificationSender.send(
+                    event.paymentReference(),
+                    message);
+            notificationIdempotencyService.markCompleted(notificationKey);
+            log.info(
+                    "PAYMENT_FAILED notification completed. " + "paymentReference={}",
+                    event.paymentReference());
+        } catch (RuntimeException exception) {
+            notificationIdempotencyService.markFailed(notificationKey);
+            log.error(
+                    "PAYMENT_FAILED notification failed. " + "paymentReference={}",
+                    event.paymentReference(),
+                    exception);
+            throw exception;
+        }
     }
 
     public void notifyPaymentRejected(
@@ -148,6 +199,10 @@ public class NotificationService {
     }
 
     private String buildNotificationKey(String paymentReference, String notificationType, String channel) {
-        return paymentReference + ":" + notificationType + ":" + channel;
+        return paymentReference +
+                ":" +
+                notificationType +
+                ":" +
+                channel;
     }
 }
