@@ -94,3 +94,6 @@ banking:
       max-attempts: 2
       initial-delay-ms: 100
       multiplier: 1.0
+    failure-simulation:
+      enabled: true
+      fail-until-attempt: 1

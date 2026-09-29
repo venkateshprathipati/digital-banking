@@ -1,6 +1,8 @@
 package com.novalabs.digitalbanking.notification.service;
 
 import com.novalabs.digitalbanking.common.exception.NotificationDeliveryException;
+import com.novalabs.digitalbanking.notification.failure.NotificationFailureSimulator;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.retry.annotation.Backoff;
 import org.springframework.retry.annotation.Recover;
@@ -8,8 +10,11 @@ import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Component;
 
 @Component
+@RequiredArgsConstructor
 @Slf4j
 public class NotificationSender {
+
+    private final NotificationFailureSimulator failureSimulator;
 
     @Retryable(
             retryFor = NotificationDeliveryException.class,
@@ -35,13 +40,19 @@ public class NotificationSender {
             String paymentReference,
             String message
     ) {
+        failureSimulator.beforeSend(paymentReference);
         /*
-        * Replace this with actual SMS/email provider call.
-        * Example:
-        * notificationClient.send(
-        * paymentReference,
-        * message
-        * );
-        */
+         * Actual SMS/email provider call will eventually go here.
+         *
+         * Example:
+         *
+         * notificationClient.send(
+         *     paymentReference,
+         *     message
+         * );
+         */
+
+        log.info("Notification provider accepted message. " +
+                "paymentReference={}", paymentReference);
     }
 }
