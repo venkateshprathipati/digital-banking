@@ -87,7 +87,6 @@ public class TransferService {
                 request.currency()
         );
 
-        payment.markProcessing();
         payment.markCompleted();
 
         paymentRepository.save(payment);
