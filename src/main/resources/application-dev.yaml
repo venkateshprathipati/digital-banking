@@ -51,6 +51,25 @@ spring:
         order_updates: true
         generate_statistics: false
 
+  kafka:
+    bootstrap-servers: localhost:9092
+
+    producer:
+      kay-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+      acks: all
+      retries: 10
+      properties:
+        enable.idempotence: true
+
+    consumer:
+      group-id: transaction-service
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      auto-offset-reset: earliest
+      properties:
+        spring.json.trusted.packages: "com.novalabs.digitalbanking"
+
 server:
   port: 8080
 
