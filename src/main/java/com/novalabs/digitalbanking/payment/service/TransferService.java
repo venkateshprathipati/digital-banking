@@ -3,6 +3,7 @@ package com.novalabs.digitalbanking.payment.service;
 import com.novalabs.digitalbanking.account.entity.Account;
 import com.novalabs.digitalbanking.account.repository.AccountRepository;
 import com.novalabs.digitalbanking.common.exception.ResourceNotFoundException;
+import com.novalabs.digitalbanking.common.outbox.OutboxService;
 import com.novalabs.digitalbanking.fraud.engine.FraudEngine;
 import com.novalabs.digitalbanking.fraud.model.FraudContext;
 import com.novalabs.digitalbanking.payment.event.PaymentCompletedEvent;
@@ -30,6 +31,8 @@ public class TransferService {
     private final PaymentFactory paymentFactory;
     private final FraudEngine fraudEngine;
     private final ApplicationEventPublisher eventPublisher;
+
+    private final OutboxService outboxService;
 
     @Transactional
     public TransferResponse transfer(TransferRequest request) {
@@ -91,15 +94,17 @@ public class TransferService {
 
         paymentRepository.save(payment);
 
-        eventPublisher.publishEvent(
-                new PaymentCompletedEvent(
-                        payment.getPaymentReference(),
-                        sourceAccount.getId(),
-                        destinationAccount.getId(),
-                        payment.getAmount(),
-                        payment.getCurrency()
-                )
+        PaymentCompletedEvent event = new PaymentCompletedEvent(
+                payment.getPaymentReference(),
+                sourceAccount.getId(),
+                destinationAccount.getId(),
+                payment.getAmount(),
+                payment.getCurrency()
         );
+
+        eventPublisher.publishEvent(event);
+
+        outboxService.recordPaymentCompleted(event);
 
         return new TransferResponse(
                 payment.getPaymentReference(),
