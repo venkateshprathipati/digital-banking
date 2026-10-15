@@ -41,6 +41,9 @@ public class SecurityConfig {
                 )
                 .authorizeHttpRequests(authorizeRequests ->
                         authorizeRequests.requestMatchers("/actuator/health").permitAll()
+                                // Public interactive API documentation; keep API operations protected.
+                                .requestMatchers("/v3/api-docs/**", "/v3/api-docs.yaml",
+                                        "/swagger-ui/**", "/swagger-ui.html").permitAll()
                                 .requestMatchers("/v1/auth/**").permitAll()
                                 .anyRequest().authenticated())
                 .addFilterBefore(
