@@ -143,3 +143,12 @@ banking:
     failure-simulation:
       enabled: false
       fail-until-attempt: 0
+# API documentation configuration
+springdoc:
+  api-docs:
+    enabled: true
+  swagger-ui:
+    enabled: true
+    path: /swagger-ui.html
+    operations-sorter: alpha
+    tags-sorter: alpha
