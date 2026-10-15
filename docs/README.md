@@ -9,3 +9,8 @@ This directory contains engineering documentation for the Digital Banking & Paym
 ## Backlog
 
 - [August Engineering Backlog](backlog/august-backlog.md) — prioritized reliability, fraud, event, platform and distributed-architecture work.
+
+## API Documentation
+
+- [API documentation overview](api/README.md) — Swagger/OpenAPI setup, URLs, authentication flow, and documentation conventions.
+- [API endpoint guide](api/endpoints.md) — endpoint inventory and example requests for authentication, accounts, transfers, scheduled payments, transactions, payment history, and audits.
