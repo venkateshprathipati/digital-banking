@@ -85,6 +85,6 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         UserPrincipal userPrincipal = (UserPrincipal) authentication.getPrincipal();
         String token = jwtService.generateToken(userPrincipal);
 
-        return new LoginResponse("Bearer", token, properties.getExpiration() / 1000);
+        return new LoginResponse(token, "Bearer", properties.getExpiration() / 1000);
     }
 }
