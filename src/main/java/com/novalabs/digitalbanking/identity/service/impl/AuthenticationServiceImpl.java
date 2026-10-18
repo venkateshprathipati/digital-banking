@@ -58,7 +58,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         user.setEmail(email);
 
         user.setPassword(passwordEncoder.encode(request.password()));
-        user.setRole(Role.CUSTOMER);
+        user.setRole(Role.valueOf(request.role().trim().toUpperCase(Locale.ROOT)));
         user.setEnabled(true);
         user.setAccountNonLocked(true);
 

@@ -6,7 +6,6 @@ import com.novalabs.digitalbanking.identity.security.UserPrincipal;
 import com.novalabs.digitalbanking.payment.dto.TransferRequest;
 import com.novalabs.digitalbanking.payment.dto.TransferResponse;
 import com.novalabs.digitalbanking.payment.service.IdempotentTransferService;
-import com.novalabs.digitalbanking.payment.service.TransferService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
