@@ -60,6 +60,21 @@ class AuthenticationIntegrationTest {
     }
 
     @Test
+    void registerEmployee_shouldBeRejected() throws Exception {
+        mockMvc.perform(post("/v1/auth/register")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "username": "register.employee",
+                                  "email": "register.employee@example.com",
+                                  "password": "SecurePass123!",
+                                  "role": "EMPLOYEE"
+                                }
+                                """))
+                .andExpect(status().isUnprocessableEntity());
+    }
+
+    @Test
     void registerRoleWithTrailingCharacters_shouldFailValidation() throws Exception {
         mockMvc.perform(post("/v1/auth/register")
                         .contentType(MediaType.APPLICATION_JSON)
