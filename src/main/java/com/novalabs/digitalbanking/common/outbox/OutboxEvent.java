@@ -49,4 +49,35 @@ public class OutboxEvent {
     @Column(name = "published_at")
     private LocalDateTime publishedAt;
 
+    public OutboxEvent(
+            UUID eventId,
+            String aggregateType,
+            String aggregateId,
+            String eventType,
+            String payload,
+            String topic
+    ) {
+        this.eventId = eventId;
+        this.aggregateType = aggregateType;
+        this.aggregateId = aggregateId;
+        this.eventType = eventType;
+        this.payload = payload;
+        this.topic = topic;
+        this.status = OutboxStatus.PENDING;
+        this.retryCount = 0;
+    }
+
+    public void markPublished() {
+        this.status = OutboxStatus.PUBLISHED;
+        this.publishedAt = LocalDateTime.now();
+    }
+
+    public void recordFailure(int maxRetries) {
+        this.retryCount++;
+
+        if (this.retryCount >= maxRetries) {
+            this.status = OutboxStatus.FAILED;
+        }
+    }
+
 }

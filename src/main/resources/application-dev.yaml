@@ -131,3 +131,5 @@ banking:
     failure-simulation:
       enabled: false
       fail-until-attempt: 2
+  outbox:
+    poll-delay-ms: 5000

@@ -1,5 +1,6 @@
 package com.novalabs.digitalbanking.identity.service.impl;
 
+import com.novalabs.digitalbanking.common.exception.BusinessRuleViolationException;
 import com.novalabs.digitalbanking.common.exception.ErrorCode;
 import com.novalabs.digitalbanking.common.exception.UserAlreadyExistsException;
 import com.novalabs.digitalbanking.identity.dto.LoginRequest;
@@ -29,7 +30,7 @@ import java.util.Locale;
 public class AuthenticationServiceImpl implements AuthenticationService {
 
     private final AuthenticationManager authenticationManager;
-    private final JwtService  jwtService;
+    private final JwtService jwtService;
     private final JwtProperties properties;
     private final UserRepository userRepository;
     private final UserMapper userMapper;
@@ -40,6 +41,15 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     public RegistrationResponse register(RegistrationRequest request) {
         String username = request.username().trim();
         String email = request.email().trim().toLowerCase(Locale.ROOT);
+
+        // Public self-registration must never grant privileged roles.
+        Role requestedRole = Role.valueOf(request.role().trim().toUpperCase(Locale.ROOT));
+        if (requestedRole != Role.CUSTOMER) {
+            throw new BusinessRuleViolationException(
+                    "Public registration is restricted to the CUSTOMER role"
+            );
+        }
+
         if (userRepository.existsByUsername(username)) {
             throw new UserAlreadyExistsException(
                     ErrorCode.USERNAME_ALREADY_EXISTS,
@@ -56,7 +66,6 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         User user = userMapper.toEntity(request);
         user.setUsername(username);
         user.setEmail(email);
-
         user.setPassword(passwordEncoder.encode(request.password()));
         user.setRole(Role.CUSTOMER);
         user.setEnabled(true);
@@ -70,17 +79,12 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     public LoginResponse authenticate(LoginRequest request) {
         String username = request.username().trim();
         Authentication authentication = authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(
-                        username,request.password()
-                )
+                new UsernamePasswordAuthenticationToken(username, request.password())
         );
 
-        UserPrincipal userPrincipal = (UserPrincipal)authentication.getPrincipal();
-
+        UserPrincipal userPrincipal = (UserPrincipal) authentication.getPrincipal();
         String token = jwtService.generateToken(userPrincipal);
 
-        return new LoginResponse(
-                token,"Bearer", properties.getExpiration() / 1000
-        );
+        return new LoginResponse(token, "Bearer", properties.getExpiration() / 1000);
     }
 }
