@@ -16,8 +16,14 @@ public class PaymentCompletedKafkaConsumer {
     )
     public void consume(PaymentCompletedEvent event){
         log.info(
-                "Payment event received from Kafka. paymentReference={}",
-                event.paymentReference()
+                "Kafka payment.completed consumed. " +
+                        "paymentReference={}, sourceAccountId={}, " +
+                        "destinationAccountId={}, amount={}, currency={}",
+                event.paymentReference(),
+                event.sourceAccountId(),
+                event.destinationAccountId(),
+                event.amount(),
+                event.currency()
         );
     }
 }
