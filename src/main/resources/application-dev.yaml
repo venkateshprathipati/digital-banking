@@ -61,6 +61,9 @@ spring:
       retries: 10
       properties:
         enable.idempotence: true
+        delivery.timeout.ms: 120000
+        request.timeout.ms: 30000
+        linger.ms: 5
 
     consumer:
       group-id: transaction-service
