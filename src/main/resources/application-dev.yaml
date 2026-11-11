@@ -136,3 +136,6 @@ banking:
       fail-until-attempt: 2
   outbox:
     poll-delay-ms: 5000
+    batch-size: 20
+    lease-duaration-seconds: 180
+    worker-id: ${OUTBOX_WORKER_ID:outbox-publisher-1}
