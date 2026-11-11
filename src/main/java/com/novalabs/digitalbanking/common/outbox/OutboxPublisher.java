@@ -1,11 +1,13 @@
 package com.novalabs.digitalbanking.common.outbox;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.novalabs.digitalbanking.common.kafka.PaymentEventProducer;
 import com.novalabs.digitalbanking.payment.event.PaymentCompletedEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
@@ -18,54 +20,41 @@ import java.util.concurrent.TimeUnit;
 @Slf4j
 public class OutboxPublisher {
 
-    private static final int MAX_RETRIES = 10;
+    //private static final int MAX_RETRIES = 10;
     private static final int ACK_TIMEOUT_SECONDS = 10;
 
-    private final OutboxEventRepository outboxEventRepository;
+    private final OutboxClaimService claimService;
+    private final OutboxCompletionService completionService;
     private final PaymentEventProducer paymentEventProducer;
     private final ObjectMapper objectMapper;
+
+    @Value("${banking.outbox.worker-id:outbox-publisher-1}")
+    private String workerId;
 
     @Scheduled(
             fixedDelayString = "${banking.outbox.poll-delay-ms:5000}"
     )
     public void publishPendingEvents() {
-        var pendingEvents = outboxEventRepository.findTop50ByStatusOrderByCreatedAtAsc(
-                OutboxStatus.PENDING
-        );
-
-        for (OutboxEvent outboxEvent : pendingEvents) {
+        var events = claimService.claimBatch(workerId);
+        if (events.isEmpty()) {
+            return;
+        }
+        log.info("Claimed {} outbox events. workerId={}", events.size(), workerId);
+        for (OutboxEventSnapshot event : events) {
             try {
-                PaymentCompletedEvent event =
-                        objectMapper.readValue(
-                                outboxEvent.getPayload(),
-                                PaymentCompletedEvent.class
-                        );
-
-                paymentEventProducer.publish(event)
-                        .get(ACK_TIMEOUT_SECONDS, TimeUnit.SECONDS);
-                outboxEvent.markPublished();
-                outboxEventRepository.save(outboxEvent);
-
-                log.info("Outbox event published. eventId={},paymentReference={}",
-                        outboxEvent.getEventId(),
-                        event.paymentReference());
+                PaymentCompletedEvent paymentCompletedEvent =
+                        objectMapper.readValue(event.payload(), PaymentCompletedEvent.class);
+                paymentEventProducer.publish(paymentCompletedEvent).get(ACK_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+                completionService.markPublished(event.id(), workerId);
+                log.info("Outbox event published. eventId{}", event.eventId());
 
             } catch (InterruptedException exception) {
                 Thread.currentThread().interrupt();
-                log.warn("Outbox publishing interrupted");
+                log.warn("Outbox publisher interrupted. eventId={}", event.eventId());
                 return;
             } catch (Exception exception) {
-                outboxEvent.recordFailure(MAX_RETRIES);
-                outboxEventRepository.save(outboxEvent);
-
-                log.error(
-                        "Outbox publishing failed. eventId={},retries={},status={}",
-                        outboxEvent.getEventId(),
-                        outboxEvent.getRetryCount(),
-                        outboxEvent.getStatus(),
-                        exception
-                );
-
+                completionService.markFailed(event.id(), workerId, exception);
+                log.error("Outbox event publishing failed. eventId={}", event.eventId(), exception);
             }
         }
     }
