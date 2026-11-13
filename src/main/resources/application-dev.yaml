@@ -53,6 +53,8 @@ spring:
 
   kafka:
     bootstrap-servers: localhost:9092
+    listener:
+      concurrency: 1
 
     producer:
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
@@ -66,7 +68,7 @@ spring:
         linger.ms: 5
 
     consumer:
-      group-id: transaction-service
+      group-id: ${KAFKA_CONSUMER_GROUP_ID:transaction-service}
       key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
       value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
       auto-offset-reset: earliest

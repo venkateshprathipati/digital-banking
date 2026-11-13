@@ -11,8 +11,7 @@ import org.springframework.stereotype.Component;
 public class PaymentCompletedKafkaConsumer {
 
     @KafkaListener(
-            topics = KafkaConfig.PAYMENT_COMPLETED_TOPIC,
-            groupId = "transaction-service"
+            topics = KafkaConfig.PAYMENT_COMPLETED_TOPIC
     )
     public void consume(PaymentCompletedEvent event){
         log.info(
@@ -24,6 +23,10 @@ public class PaymentCompletedKafkaConsumer {
                 event.destinationAccountId(),
                 event.amount(),
                 event.currency()
+        );
+        System.out.println(
+                "Received payment event: "
+                        + event.paymentReference()
         );
     }
 }
