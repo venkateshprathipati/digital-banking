@@ -1,1067 +1,392 @@
 # 🏦 Digital Banking & Payments Platform
 
-> Enterprise-grade Digital Banking & Payments Platform built with Java, Spring Boot, PostgreSQL, and modern backend engineering practices.
+> Enterprise-style digital banking backend built with Java, Spring Boot, PostgreSQL, Kafka and Redis, with a focus on correctness, reliability, security and production-oriented backend engineering.
 
-A production-oriented backend project designed to demonstrate how a real financial platform can evolve from a **Modular Monolith** into a **Microservices-based distributed system**.
+This repository is an incremental implementation of a digital banking and payments platform. It starts with a **modular monolith** to keep financial operations transactional and domain boundaries explicit, while introducing reliable messaging and distributed-systems practices as the platform evolves.
 
-The project focuses on:
-
-- Financial transaction correctness
-- Account and balance management
-- Payment processing
-- Fraud detection
-- Transaction and audit management
-- Event-driven architecture
-- Authentication and authorization
-- Concurrency control
-- Database consistency
-- Observability
-- Reliability
-- Scalability
-- Microservice evolution
+**Repository:** [venkateshprathipati/digital-banking](https://github.com/venkateshprathipati/digital-banking)  
+**Working branch:** `dev`  
+**Status reviewed:** 12 November 2026
 
 ---
 
-# 📌 Project Status
+## Project status
 
-**Current Stage: Week 5 — Transaction & Fraud Foundations**
+The project has progressed from core account/payment foundations into **reliability and event-driven processing**. The `dev` branch contains the following implemented areas.
 
-The project is currently implemented as a **Modular Monolith**.
+| Area | Status in `dev` | Notes |
+|---|---|---|
+| Account lifecycle and balance operations | Implemented | Account creation, account state, balance operations and freeze/unfreeze flows |
+| Payment transfers | Implemented | Transfer workflow, validation and persistence |
+| Transaction history and audit | Implemented | Transaction records and audit/event handling |
+| Fraud detection | Implemented | Rule-based fraud decision flow |
+| Authentication and authorization | Implemented | Spring Security, JWT and role-based access; public registration is restricted to the customer role |
+| Database consistency | Implemented | PostgreSQL, JPA/Hibernate, Flyway and locking/versioning mechanisms |
+| Payment idempotency | Implemented | Idempotency persistence and request-hash schema are present |
+| Scheduled payments | Implemented in code | Scheduled-payment schema and application code are present; validate scheduler execution in the target environment |
+| Transactional outbox | Implemented in code | Outbox schema and publisher/reliability changes are present; delivery/recovery behavior should be validated against a running broker |
+| Kafka integration | Implemented in code | Producer/consumer work is represented in branch history; verify broker configuration and end-to-end delivery locally |
+| Redis integration | Configured/in use in project | Used for supporting cache/idempotency-related capabilities; PostgreSQL remains authoritative for financial state |
+| API documentation | Implemented | Springdoc/OpenAPI documentation is included |
+| Environment profiles | Implemented | Base, dev, test and prod YAML configuration files are present |
+| Integration testing | Implemented | Testcontainers-backed and integration test classes are present; run the suite before treating all scenarios as passing |
+| Production observability | Foundation present | Spring Boot Actuator is configured; dashboards, alerting and distributed tracing remain future hardening |
 
-The architecture is intentionally designed so that individual business modules can later be extracted into independent microservices.
-
-### Currently implemented
-
-- Account Management
-- Account Balance Management
-- Account Freeze / Unfreeze
-- Payment Transfer
-- Payment Validation
-- Transaction Management
-- Audit Logging
-- Fraud Detection
-- Rule-based Fraud Engine
-- Payment Success Events
-- Payment Failure Events
-- Payment Rejection Events
-- Fraud Detection Events
-- Notification Event Handling
-- Transaction Rollback Handling
-- Optimistic Locking
-- Pessimistic Locking
-- Spring Security
-- **JWT** Authentication
-- PostgreSQL
-- **JPA** / Hibernate
-- Flyway Database Migration
-- Bean Validation
-- Global Exception Handling
-- **API** Response Standardization
-- Integration Testing
-- Testcontainers
-- Spring Boot Actuator
+> **Status wording:** “Implemented” means the relevant code/configuration is present in the branch. It does not claim that production deployment, broker operations, load testing or every test scenario has been independently verified.
 
 ---
 
-# 🎯 Project Objective
-
-The goal of this project is not simply to build **CRUD** APIs.
-
-The objective is to design a realistic enterprise financial backend and demonstrate the engineering decisions required to build systems that handle:
-
-High-value transactions Concurrent requests Financial consistency Fraud detection Security Failure handling Auditability Event-driven processing Scalability Production operations
-
-The project is being developed incrementally, following the evolution of a real enterprise backend.
-
-🏗️ Architecture Evolution
-
-The system follows this evolution:
-
-    **CURRENT**
-    │
-    ▼
-    ┌─────────────────┐
-    │ Modular Monolith │
-    └────────┬────────┘
-    │
-    ▼
-    Clear Domain Boundaries
-    │
-    ▼
-    Stable Business APIs
-    │
-    ▼
-    Domain Events
-    │
-    ▼
-    Durable Event Infrastructure
-    │
-    ▼
-    Selective Microservice
-    Extraction
-    │
-    ▼
-    Independent Microservices
-
-The project intentionally avoids prematurely introducing distributed-system complexity.
-
-🏛️ Current Architecture
-┌─────────────────────┐
-│       Clients       │
-│                     │
-│ Web / Mobile / **API**  │
-└──────────┬──────────┘
-│
-▼
-┌─────────────────────┐
-│    Spring Boot      │
-│   **REST** Controllers  │
-└──────────┬──────────┘
-│
-┌─────────────────────┼─────────────────────┐
-│                     │                     │
-▼                     ▼                     ▼
-┌─────────────┐       ┌─────────────┐       ┌─────────────┐
-│   Account   │       │   Payment   │       │    Auth     │
-│   Module    │       │   Module    │       │  /Security  │
-└──────┬──────┘       └──────┬──────┘       └─────────────┘
-│                     │
-│                     ▼
-│              ┌─────────────┐
-│              │ FraudEngine │
-│              └──────┬──────┘
-│                     │
-│                     ▼
-│              ┌─────────────┐
-│              │ Fraud Rules │
-│              └─────────────┘
-│
-▼
-┌─────────────────────────────────────┐
-│             PostgreSQL              │
-│      Financial Source of Truth      │
-└─────────────────────────────────────┘
-
-Payment / Fraud Business Events
-│
-▼
-Spring Application Events
-│
-▼
-@TransactionalEventListener
-AFTER_COMMIT
-│
-▼
-Notification Module
-🧩 Domain Modules
-
-The application is organized around business capabilities rather than technical layers.
-
-com.novalabs.digitalbanking │ ├── auth ├── account ├── payment ├── transaction ├── audit ├── fraud ├── notification └── common 🔐 Auth / Security Module
-
-Responsible for:
-
-Authentication **JWT** generation **JWT** validation Authorization Role-based access control Securing **REST** endpoints User identity
-
-Security is treated as a separate concern from business logic.
+## Architecture and evolution
+
+The current codebase remains a **modular monolith**. Kafka and the outbox infrastructure introduce asynchronous/event-driven capabilities, but the presence of a broker does not mean the business modules have already been extracted into independently deployable microservices.
+
+### Current high-level view
+
+```text
+                 Web / Mobile / API Clients
+                           |
+                           v
+                    Spring Boot REST API
+                           |
+          +----------------+----------------+
+          |                |                |
+          v                v                v
+      Identity           Account          Payment
+      / Security          Module           Module
+                           |                |
+                           |          +-----+------+
+                           |          |            |
+                           |          v            v
+                           |        Fraud      Scheduled
+                           |        Rules       Payments
+                           |          |
+                           +----------+
+                                      |
+                                      v
+                           Transaction + Audit
+                                      |
+                                      v
+                                PostgreSQL
+                         (financial source of truth)
+                                      |
+                           Transactional Outbox
+                                      |
+                                      v
+                                    Kafka
+                                      |
+                          +-----------+-----------+
+                          |                       |
+                          v                       v
+                    Event Consumers       Notification Flow
+
+                         Redis
+              (supporting cache / fast lookups)
+```
+
+### Architectural direction
+
+1. Keep account balances and payment state transactionally consistent in PostgreSQL.
+2. Persist business changes and their outbox events within the same database transaction.
+3. Publish outbox records asynchronously and make consumers safe against duplicate delivery.
+4. Introduce independent services only when ownership, deployment or scaling needs justify extraction.
+
+---
+
+## Implemented capabilities
+
+### 1. Identity, authentication and authorization
+
+- Spring Security integration.
+- JWT-based authentication and request authorization.
+- Role-based access control.
+- Registration flow restricts public self-registration to the customer role.
+- Protected REST endpoints and identity-aware business operations.
+
+### 2. Account management
+
+- Open and retrieve accounts.
+- Maintain account balances.
+- Account status management, including freeze and unfreeze.
+- Account state validation before financial operations.
+- PostgreSQL-backed persistence.
+
+### 3. Payments and transfers
+
+- Transfer request validation.
+- Source and destination account checks.
+- Balance debit and credit within a transaction boundary.
+- Payment and transaction persistence.
+- Failure handling and rollback-oriented tests.
+- Payment idempotency support to prevent duplicate processing when a request is retried with the same idempotency identity.
+
+### 4. Fraud detection
+
+- Rule-based fraud evaluation.
+- Fraud decision integrated into the payment workflow.
+- Extensible rule-oriented design for additional checks.
+
+### 5. Transactions and audit
+
+- Persist transaction history for payment operations.
+- Retain business references and transaction status for traceability.
+- Separate audit/event records from ordinary application logging.
+
+### 6. Scheduled payments
+
+- Scheduled-payment persistence and migration.
+- Scheduled-payment application components are present in the codebase.
+- The scheduler should be verified with the active profile, database state and application logs before relying on execution in an environment.
+
+### 7. Reliable event processing: outbox and Kafka
+
+- Outbox database schema is present.
+- Outbox reliability fields have been added.
+- Outbox publisher and database-locking behavior received a code update merged on 11 November 2026.
+- Kafka producer configuration and consumer implementation are represented in the branch history.
+- The design supports decoupling event creation from asynchronous publication.
+
+**Important delivery guarantee:** An outbox normally provides at-least-once publication. Consumers must be idempotent because a publisher can successfully send a message and fail before recording that it was sent. Do not describe this as end-to-end exactly-once processing unless the complete transaction, broker and consumer design proves that guarantee.
+
+### 8. Notifications
 
-🏦 Account Module
+- Notification/event-handling components are part of the application.
+- Notification processing is designed to react to business events rather than own account balances or payment state.
+- Verify each consumer group, retry and failure path with a running Kafka broker before claiming operational readiness.
+
+---
+
+## Technology stack
 
-The Account module owns account state.
+| Concern | Technology |
+|---|---|
+| Language | Java |
+| Framework | Spring Boot |
+| Security | Spring Security, JWT |
+| Persistence | Spring Data JPA, Hibernate |
+| Primary database | PostgreSQL |
+| Schema migrations | Flyway |
+| Messaging | Apache Kafka |
+| Cache / supporting fast data access | Redis |
+| API documentation | Springdoc OpenAPI |
+| Validation | Jakarta Bean Validation |
+| Testing | JUnit, Spring Boot Test, Testcontainers |
+| Monitoring foundation | Spring Boot Actuator |
+| Build | Maven |
 
-Responsibilities Open account Generate account number Maintain account balance Deposit Withdraw Freeze account Unfreeze account Validate account status Retrieve account information ### Account State
+Exact dependency versions are maintained in `pom.xml`.
 
-Example:
+---
 
-**ACTIVE** **FROZEN** **CLOSED** 💳 Payment Module
+## Repository structure
 
-The Payment module owns payment orchestration.
+The application uses package-by-business-domain organization. The main source tree includes:
 
-Responsibilities Initiate transfer Validate transfer request Validate source account Validate destination account Check account status Invoke fraud detection Debit source account Credit destination account Persist payment Publish payment events Handle payment failure Handle payment rejection 🛡️ Fraud Detection Module
+```text
+src/
+  main/
+    java/com/novalabs/digitalbanking/
+      account/
+      auth/
+      common/
+      fraud/
+      notification/
+      payment/
+        controller/
+        dto/
+        entity/
+        event/
+        idempotency/
+        repository/
+        scheduled/
+        service/
+        validation/
+      security/
+      transactions/
+    resources/
+      application.yaml
+      application-dev.yaml
+      application-test.yaml
+      application-prod.yaml
+      db/migration/
+  test/
+    java/com/novalabs/digitalbanking/
+```
 
-Fraud detection is implemented using a rule-based architecture.
+The exact package contents may evolve as implementation progresses.
 
-    ┌──────────────┐
-    │ FraudEngine  │
-    └───────┬──────┘
-    │
-    ┌───────────────┼────────────────┐
-    │               │                │
-    ▼               ▼                ▼
-┌────────────────┐ ┌────────────────┐ ┌───────────────┐
-│ LargeAmountRule│ │BlockedAccount  │ │ Future Rules  │
-│                │ │Rule            │ │               │
-└────────────────┘ └────────────────┘ └───────────────┘
-│               │                │
-└───────────────┼────────────────┘
-│
-▼
-Fraud Decision
-│
-┌───────┴───────┐
-▼               ▼
-**PASS**            **BLOCK**
-
-The system uses a FraudRule abstraction.
-
-This follows the Strategy Pattern and allows new rules to be introduced without modifying a large centralized conditional block.
-
-💰 Transaction Module
-
-The Transaction module provides financial transaction history and transaction tracking.
-
-A payment operation can produce transaction information such as:
-
-Transaction ID ### Payment Reference ### Source Account ### Destination Account Amount ### Transaction Type ### Transaction Status Timestamp
-
-The transaction history is important for:
-
-Customer history Reconciliation Audit Fraud investigation Operational troubleshooting 📝 Audit Module
-
-Audit information provides traceability for important financial operations.
-
-The audit layer helps answer:
-
-Who performed the operation? What operation was performed? When did it happen? What was the result? What business reference was involved?
-
-Audit data should be treated differently from normal application logs.
-
-📨 Notification Module
-
-The Notification module reacts to business events.
-
-Current events include:
-
-PaymentCompletedEvent PaymentFailedEvent PaymentRejectedEvent FraudDetectedEvent
-
-The notification module does not own financial state.
-
-It reacts to events produced by business modules.
-
-🔄 Payment Transfer Flow
-
-A typical transfer request follows this flow:
-
-**POST** /api/v1/transfers
-│
-▼
-Payment Controller
-│
-▼
-Transfer Service
-│
-├── Validate request
-│
-├── Load source account
-│
-├── Load destination account
-│
-├── Validate account state
-│
-▼
-FraudEngine
-│
-├── Large Amount Rule
-├── Blocked Account Rule
-└── Future Rules
-│
-▼
-Fraud Decision
-│
-┌────┴────┐
-│         │
-**BLOCK**     **PASS**
-│         │
-▼         ▼
-Reject     Debit Source
-│
-▼
-Credit Destination
-│
-▼
-Save Payment
-│
-▼
-Save Transaction
-│
-▼
-Save Audit
-│
-▼
-Publish Event
-│
-▼
-**COMMIT**
-│
-▼
-Notification
-💵 Financial Transaction Boundary
+---
 
-Financial operations must be executed within a controlled database transaction.
+## Configuration profiles
 
-Conceptually:
+Profile files are present for:
 
-@Transactional
-│
-▼
-Validate
-│
-▼
-### Fraud Check
-    │
-    ▼
-Debit
-│
-▼
-Credit
-│
-▼
-### Persist Payment
-    │
-    ▼
-### Persist Transaction
-    │
-    ▼
-### Persist Audit
-    │
-    ▼
-**COMMIT**
+- `application.yaml` — shared defaults.
+- `application-dev.yaml` — local development configuration.
+- `application-test.yaml` — test configuration.
+- `application-prod.yaml` — production-oriented configuration.
 
-If a critical operation fails:
+Activate the desired profile explicitly.
 
-Exception
-│
-▼
-**ROLLBACK**
+### Maven
 
-This prevents partially completed financial operations.
+```bash
+./mvnw spring-boot:run -Dspring-boot.run.profiles=dev
+```
 
-🔒 Concurrency Control
+### JVM option
 
-Financial systems must correctly handle concurrent requests.
+```text
+-Dspring.profiles.active=dev
+```
 
-Example:
+For a production run, use the `prod` profile and supply secrets, database credentials, Kafka/Redis endpoints and signing keys through environment variables or a secret manager. Do not commit production secrets to the repository.
 
-Initial Balance = ₹10,**000**
+---
 
-Request A → Withdraw ₹7,**000** Request B → Withdraw ₹6,**000**
+## Prerequisites
 
-Both requests must not independently read:
+Install and configure:
 
-₹10,**000**
+- JDK version compatible with the project POM.
+- Maven (or use the Maven wrapper if included).
+- PostgreSQL.
+- Kafka broker for producer/consumer and outbox delivery flows.
+- Redis for features configured to use it.
+- Docker, when using Testcontainers or local infrastructure containers.
 
-and then successfully withdraw.
+---
 
-The project uses database concurrency mechanisms including:
+## Run locally
 
-### Optimistic Locking
+1. Start PostgreSQL and create the application database/user expected by your active profile.
+2. Start Kafka and Redis when exercising the related features.
+3. Set required environment variables and review the active YAML profile.
+4. Run the application:
 
-Used when conflicts are possible but relatively infrequent.
+```bash
+./mvnw spring-boot:run -Dspring-boot.run.profiles=dev
+```
 
-@Version
+5. Check the application logs and health endpoint:
 
-Hibernate uses the version value to detect concurrent modifications.
+```text
+http://localhost:8080/actuator/health
+```
 
-### Pessimistic Locking
+The Actuator endpoint is available only when the active profile exposes it and the application starts successfully.
 
-Used for critical balance operations where concurrent modifications must be serialized.
+### API documentation
 
-Conceptually:
+When the application is running and the profile permits Swagger UI:
 
-**SELECT** * **FROM** accounts **WHERE** id = ? **FOR** **UPDATE**;
+```text
+http://localhost:8080/swagger-ui/index.html
+http://localhost:8080/v3/api-docs
+```
 
-This prevents another transaction from modifying the locked row until the current transaction completes.
+Refer to the `docs/` directory for API and architecture documentation.
 
-📨 Event-Driven Architecture
+---
 
-The current modular monolith uses Spring Application Events for in-process communication.
+## Testing
 
-### Business Operation
+Run the full test suite:
 
-    │
-    ▼
-ApplicationEventPublisher
-│
-▼
-### Spring Application Event
-    │
-    ▼
-@TransactionalEventListener
-│
-▼
-AFTER_COMMIT
-│
-▼
-Notification
-Why AFTER_COMMIT?
+```bash
+./mvnw clean test
+```
 
-Consider:
+Run a focused test class:
 
-Payment
-│
-▼
-### Send Notification
-    │
-    ▼
-### Database Rollback
+```bash
+./mvnw -Dtest=TransferServiceRollbackTest test
+```
 
-The customer may receive:
+The repository includes integration-test coverage for authentication/authorization, payment transfer/history, rollback behavior and account cache consistency. Testcontainers-based tests require a working Docker environment.
 
-### Payment Successful
+**Before marking a scenario complete**, run the relevant test and record the result. Source files alone do not establish that the test currently passes.
 
-even though the payment was rolled back.
+---
 
-This is incorrect.
+## Financial correctness and reliability principles
 
-With:
+- Keep PostgreSQL as the source of truth for financial balances and payment state.
+- Use database transactions for atomic debit/credit and related persistence.
+- Use optimistic or pessimistic locking according to the contention and consistency needs of the operation.
+- Acquire multiple account locks in a deterministic order to reduce deadlock risk.
+- Use idempotency keys for retryable payment requests.
+- Persist outbox events in the same transaction as the business change.
+- Expect duplicate message delivery and make consumers idempotent.
+- Define bounded retries and a dead-letter/recovery strategy for failed event processing.
+- Never log passwords, JWTs, signing secrets or unnecessary personal/financial data.
 
-Payment
-│
-▼
-### Database Commit
-    │
-    ▼
-AFTER_COMMIT Event
-│
-▼
-Notification
+---
 
-the notification represents committed business state.
+## Current engineering focus
 
-🧠 Domain Events
+The latest merged implementation milestone on the `dev` branch is the **outbox publisher and database-locking improvement** (11 November 2026).
 
-Events should represent business facts.
+Suggested next verification and hardening steps:
 
-Good:
+1. Run `./mvnw clean test` and capture the actual test result.
+2. Start two application instances against the same PostgreSQL database and verify competing outbox workers using row-level locking / `SKIP LOCKED`.
+3. Verify outbox retry, backoff, stale-event recovery and duplicate publication behavior.
+4. Verify Kafka producer delivery and consumer-group behavior with multiple consumers/instances.
+5. Verify scheduled payments across due-time, retry, failure and duplicate-execution scenarios.
+6. Verify payment idempotency under concurrent duplicate requests.
+7. Validate Actuator health/metrics exposure for each profile.
+8. Add dashboards, alerting, distributed tracing and operational runbooks.
 
-PaymentCompleted PaymentFailed PaymentRejected FraudDetected
+These are verification/hardening items, not claims that every item is already complete.
 
-Avoid tightly coupling event names to infrastructure.
+---
 
-For example, prefer:
+## Planned evolution
 
-PaymentCompleted
+The following are future architecture and operational enhancements rather than completed microservice extraction:
 
-over:
+- Extract selected domains into independently deployable services when justified.
+- Introduce an API Gateway and service-to-service security for a distributed deployment.
+- Add service discovery/configuration management if deployment topology requires it.
+- Add distributed tracing, centralized logs, dashboards and alerting.
+- Define event schema compatibility and versioning policies.
+- Add load, soak, failure-injection and recovery testing.
+- Establish CI/CD deployment and rollback strategies.
 
-SendPaymentCompletedNotification
+---
 
-The first describes what happened.
+## Learning outcomes demonstrated
 
-The second describes what a consumer wants to do.
+This project is intended to provide hands-on practice with:
 
-This separation becomes important when the application eventually moves to Kafka.
+- Java and Spring Boot backend engineering.
+- Domain-oriented modular design.
+- REST API and security implementation.
+- Relational modelling and schema evolution.
+- Transaction isolation, locking and rollback.
+- Idempotent payment APIs.
+- Transactional outbox and asynchronous messaging.
+- Kafka producer/consumer fundamentals.
+- Scheduled and retryable business workflows.
+- Integration testing with real infrastructure.
+- Observability and production-readiness practices.
 
-📨 Kafka Strategy
+---
 
-Kafka is part of the future distributed architecture.
+## Documentation
 
-It is intentionally not introduced simply because Kafka is popular.
+See the `docs/` directory for detailed API, architecture and backlog notes. The README is the high-level entry point; detailed endpoint contracts and implementation decisions should live alongside their respective documentation.
 
-Kafka becomes valuable when we require:
+---
 
-Durable events Cross-service communication Independent consumers Event replay Consumer scaling Independent deployment High-volume asynchronous processing
+## Project links
 
-Before introducing Kafka for financial events, the project should evaluate:
+- [Repository](https://github.com/venkateshprathipati/digital-banking)
+- [Development branch](https://github.com/venkateshprathipati/digital-banking/tree/dev)
+- [Documentation](https://github.com/venkateshprathipati/digital-banking/tree/dev/docs)
 
-### Outbox Pattern
+---
 
-    │
-    ▼
-Kafka
-│
-├── Retry
-├── Dead Letter Topic
-├── Idempotent Consumer
-├── Partitioning
-├── Ordering
-└── Schema Management
-📦 Outbox Pattern — Future
+## Disclaimer
 
-For critical business events, direct event publication can eventually create a reliability gap:
-
-Database **COMMIT**
-│
-├── Success
-│
-└── Event publishing fails
-
-The Outbox Pattern can solve this by storing the business event in the same database transaction.
-
-### Business Transaction
-
-    │
-    ├── Update Financial Data
-    │
-    └── Insert Outbox Event
-    │
-    ▼
-    **COMMIT**
-    │
-    ▼
-    Outbox Publisher
-    │
-    ▼
-    Kafka
-
-This will be evaluated before introducing Kafka for critical financial events.
-
-🗄️ Database Architecture
-
-PostgreSQL is currently the primary database.
-
-### Spring Boot
-
-    │
-    ▼
-Spring Data **JPA**
-│
-▼
-Hibernate
-│
-▼
-PostgreSQL
-
-PostgreSQL is the source of truth for financial state.
-
-🛠️ Database Migrations
-
-Flyway manages database schema evolution.
-
-Application
-│
-▼
-Flyway
-│
-▼
-Versioned **SQL** Migration
-│
-▼
-PostgreSQL
-
-Schema changes should be committed as versioned migrations.
-
-Avoid manually modifying production database schemas.
-
-🔐 Security Architecture
-
-Authentication and authorization are different responsibilities.
-
-Request
-│
-▼
-**JWT** Authentication
-│
-▼
-### User Identity
-    │
-    ▼
-Role / Permission
-│
-▼
-### Account Ownership
-    │
-    ▼
-### Business Operation
-
-A valid **JWT** does not automatically mean that the user is authorized to transfer money from an account.
-
-🔒 Security Principles
-
-Never log:
-
-Passwords **JWT** Tokens ### Authorization Headers ### Refresh Tokens ### Sensitive Credentials ### Unnecessary Personal Information
-
-Prefer structured logging:
-
-correlationId paymentReference accountId eventType status duration 📊 **API** Response Strategy
-
-The **API** follows a standardized response/error model.
-
-Successful responses should provide consistent structure.
-
-Errors should provide useful information such as:
-
-timestamp status error errorCode message path correlationId
-
-Example:
-
-{
-*timestamp*: ***2026**-08-**20T11**:32:51*,
-*status*: **422**,
-*error*: *Unprocessable Entity*,
-*errorCode*: *BUS_001*,
-*message*: "LARGE_AMOUNT : Transaction amount exceeds fraud threshold*,
-*path*: */api/v1/transfers*,
-*correlationId*: *..."
-}
-🧪 Testing Strategy
-
-The project follows a layered testing strategy.
-
-### Unit Tests
-
-Used for isolated business logic.
-
-Examples:
-
-### Fraud Rules
-
-Validators Factories ### Utility Logic ### Repository Tests
-
-Validate:
-
-Database queries **JPA** mappings Indexes Locking behavior ### Integration Tests
-
-Validate:
-
-### Spring Context
-
-PostgreSQL Transactions Rollback Persistence Security
-
-Testcontainers is used to provide realistic infrastructure during integration tests.
-
-### Business Flow Tests
-
-Important scenarios include:
-
-### Successful Transfer
-
-### Insufficient Balance ### Frozen Account ### Fraud Rejection ### Payment Failure ### Transaction Rollback ### Concurrent Withdrawal ### Concurrent Transfer ### Notification Event
-
-The goal is to test business behavior rather than only code coverage.
-
-📈 Observability
-
-Spring Boot Actuator provides the foundation for application monitoring.
-
-Important metrics include:
-
-**HTTP** Request Count **HTTP** Request Latency **HTTP** Error Rate
-
-### Database Connection Pool
-
-### Database Query Performance
-
-### Payment Success Count
-
-### Payment Failure Count
-
-### Fraud Rejection Count
-
-### Notification Processing Count
-
-Future distributed architecture will introduce:
-
-OpenTelemetry Prometheus Grafana ### Distributed Tracing ### Centralized Logging 🧱 Architecture Principles
-
-The project follows these architectural rules.
-
-## Controllers
-
-Controllers handle transport concerns only.
-
-**HTTP** Validation **DTO** Mapping Response
-
-Business logic belongs in services/domain components.
-
-## Services
-
-Services own business orchestration and transaction boundaries.
-
-## Repositories
-
-Repositories own persistence access.
-
-Repositories should not contain business workflows.
-
-## Module Ownership
-
-Account
-↓
-### Account State
-
-Payment
-↓
-### Payment Workflow
-
-Fraud
-↓
-### Fraud Decision
-
-Transaction
-↓
-### Financial Transaction History
-
-Audit
-↓
-### Audit Trail
-
-Notification
-↓
-### Notification Processing
-## Cross-Module Communication
-
-Avoid unnecessary direct access to another module's internal repositories or entities.
-
-Prefer:
-
-### Application Service
-
-        ↓
-Domain/Application Contract
-↓
-### Other Module
-
-and eventually:
-
-Service ↓ **API** / Event ↓ ### Other Microservice 🏛️ Architecture Decisions **ADR**-**001** — Modular Monolith First Decision
-
-Start with a Modular Monolith.
-
-Reason
-
-The business domains and transaction boundaries are still evolving.
-
-A modular monolith provides:
-
-Strong consistency Simple deployment Simple debugging Lower operational overhead Shared database transactions
-
-while still allowing clear business boundaries.
-
-Status
-
-Accepted.
-
-**ADR**-**002** — Package by Business Domain Decision
-
-Organize code by business capability.
-
-account payment fraud notification transaction audit auth Reason
-
-This makes ownership and future service extraction clearer.
-
-Status
-
-Accepted.
-
-**ADR**-**003** — Spring Events Before Kafka Decision
-
-Use Spring Application Events for current in-process event communication.
-
-Reason
-
-The application is currently a single deployable unit.
-
-Kafka would add unnecessary operational complexity at this stage.
-
-Status
-
-Accepted.
-
-**ADR**-**004** — Kafka When Justified Decision
-
-Introduce Kafka when there is a concrete requirement for durable distributed messaging.
-
-Requirements
-
-Examples:
-
-Independent service deployment Durable events Event replay Multiple consumers High-volume asynchronous processing Cross-service communication Status
-
-Deferred.
-
-**ADR**-**005** — PostgreSQL as Financial Source of Truth Decision
-
-PostgreSQL remains the authoritative source for financial balances and transactional state.
-
-Reason
-
-Financial correctness requires strong consistency and transactional guarantees.
-
-Caches such as Redis must never become the authoritative balance source.
-
-Status
-
-Accepted.
-
-🚀 Future Microservice Evolution
-
-The project will not be split into microservices all at once.
-
-The expected evolution is:
-
-    Modular Monolith
-    │
-    ▼
-    Clear Module Boundaries
-    │
-    ▼
-    Stable Business Contracts
-    │
-    ▼
-    Domain Events
-    │
-    ▼
-    Durable Messaging
-    │
-    ▼
-    Selective Module Extraction
-    │
-    ┌─────────────┴─────────────┐
-    ▼                           ▼
-    Notification Service        Fraud Service
-    │                           │
-    └─────────────┬─────────────┘
-    ▼
-    Independent Services
-🎯 Potential Service Extraction Order
-
-A possible extraction strategy:
-
-## Notification
-
-2. Fraud
-## Payment
-## Account
-
-This is not a fixed rule.
-
-Actual extraction order will depend on:
-
-Business boundaries Operational requirements Scaling requirements Data ownership Deployment requirements Transactional coupling 📋 Current Technical Debt
-
-The next reliability improvements include:
-
-Payment idempotency
-Payment state machine
-Retry semantics
-Stronger transaction/audit consistency
-Concurrent transaction testing
-Formal event contracts
-Notification retry
-Notification delivery status
-Better authorization
-Better observability
-Architecture dependency checks
-🗓️ August Development Backlog
-Phase 1 — Payment Reliability
-Idempotency
-↓
-### Payment State Machine
-     ↓
-### Retry Semantics
-     ↓
-### Failure Handling
-Phase 2 — Transaction Reliability
-Transaction / Audit Consistency
-↓
-### Rollback Verification
-            ↓
-### Concurrency Testing
-            ↓
-### Consistency Guarantees
-Phase 3 — Fraud Improvements
-### Velocity Checks
-      ↓
-### Configurable Rules
-      ↓
-### Fraud Decision Persistence
-      ↓
-### Fraud Audit Trail
-Phase 4 — Event Reliability
-### Stable Event Contracts
-        ↓
-### Outbox Pattern Evaluation
-        ↓
-### Retry Handling
-        ↓
-### Dead Letter Handling
-Phase 5 — Distributed Architecture
-
-Only when justified:
-
-Kafka ↓ ### Notification Service ↓ ### Fraud Service ↓ Service-to-Service Authentication ↓ Service-Owned Databases ↓ ### Distributed Tracing 🚫 Technologies Intentionally Deferred
-
-The following technologies are not introduced simply for technology adoption:
-
-Kafka Redis Kubernetes ### Service Mesh **CQRS** ### Event Sourcing Saga ### Distributed Transactions ### Multiple Databases
-
-They will be introduced only when there is a concrete architectural or business requirement.
-
-🧰 Technology Stack Backend Java 21+ ### Spring Boot ### Spring Framework ### Spring Web Spring Data **JPA** Hibernate ### Spring Security ### Bean Validation MapStruct Lombok Database PostgreSQL Flyway **SQL** **JPA** / Hibernate Messaging Current ### Spring Application Events Planned ### Apache Kafka Caching Planned Redis Testing JUnit 5 Mockito ### Spring Boot Test ### Spring Security Test Testcontainers Build Maven ### Development Tools IntelliJ **IDEA** Git GitHub Postman Docker ### Docker Compose Observability ### Spring Boot Actuator ### Structured Logging Micrometer OpenTelemetry Prometheus Grafana 📂 Project Structure digital-banking/ │ ├── src/ │   │ │   ├── main/ │   │   │ │   │   ├── java/ │   │   │   │ │   │   │   └── com/ │   │   │       └── novalabs/ │   │   │           └── digitalbanking/ │   │   │               │ │   │   │               ├── auth/ │   │   │               │ │   │   │               ├── account/ │   │   │               │   ├── controller/ │   │   │               │   ├── dto/ │   │   │               │   ├── entity/ │   │   │               │   ├── enums/ │   │   │               │   ├── generator/ │   │   │               │   ├── mapper/ │   │   │               │   ├── repository/ │   │   │               │   └── service/ │   │   │               │ │   │   │               ├── payment/ │   │   │               │ │   │   │               ├── transaction/ │   │   │               │ │   │   │               ├── audit/ │   │   │               │ │   │   │               ├── fraud/ │   │   │               │   ├── engine/ │   │   │               │   ├── model/ │   │   │               │   └── rule/ │   │   │               │ │   │   │               ├── notification/ │   │   │               │   ├── event/ │   │   │               │   ├── listener/ │   │   │               │   └── service/ │   │   │               │ │   │   │               └── common/ │   │   │                   ├── exception/ │   │   │                   ├── response/ │   │   │                   ├── validation/ │   │   │                   └── util/ │   │   │ │   │   └── resources/ │   │       │ │   │       ├── application.yml │   │       ├── application-dev.yml │   │       ├── application-test.yml │   │       └── db/ │   │           └── migration/ │   │ │   └── test/ │ ├── docs/ │   ├── architecture/ │   │   └── architecture-review.md │   │ │   └── backlog/ │       └── august-backlog.md │ ├── pom.xml ├── docker-compose.yml ├── .gitignore └── **README**.md 📖 Documentation
-
-Detailed architecture and planning documents are maintained under:
-
-docs/
-│
-├── architecture/
-│   └── architecture-review.md
-│
-└── backlog/
-└── august-backlog.md
-### Architecture Review
-
-Contains:
-
-Current architecture Module responsibilities Dependency rules Transaction boundaries Concurrency strategy Fraud architecture Event architecture Security boundaries Testing strategy Architecture decisions Technical debt Microservice extraction strategy ### August Backlog
-
-Contains prioritized engineering work for:
-
-Payment reliability Fraud improvements Event reliability Platform capabilities Distributed architecture 📌 Current Development Focus
-
-The project is currently focused on reliability and architecture maturity rather than adding infrastructure.
-
-Architecture
-↓
-### Financial Correctness
-     ↓
-### Payment Reliability
-     ↓
-### Fraud Reliability
-     ↓
-### Event Reliability
-     ↓
-Observability
-↓
-### Microservice Evolution
-🎯 Next Milestone
-### Payment Reliability
-
-The next major engineering milestone focuses on:
-
-    Payment Reliability
-    │
-    ┌───────────┼───────────┐
-    ▼           ▼           ▼
-    Idempotency   State       Retry
-    Machine     Semantics
-    │           │           │
-    └───────────┼───────────┘
-    ▼
-    Transaction Safety
-    │
-    ▼
-    Outbox Evaluation
-    │
-    ▼
-    Kafka
-💡 Engineering Philosophy
-
-This project follows a simple principle:
-
-Do not introduce technology because it is popular. Introduce technology because the system has a real problem that the technology solves.
-
-For example:
-
-Need caching?
-↓
-### Evaluate Redis
-
-Need durable messaging?
-↓
-### Evaluate Kafka
-
-Need independent deployment?
-↓
-### Evaluate Microservices
-
-Need distributed tracing?
-↓
-Evaluate OpenTelemetry
-
-Need distributed transactions?
-↓
-Evaluate Saga / Outbox / other patterns
-
-The architecture should always be driven by:
-
-### Business Requirements
-
-        +
-### Consistency Requirements
-        +
-### Scalability Requirements
-        +
-### Reliability Requirements
-        +
-### Operational Constraints
-📈 Long-Term Architecture Vision
-
-The final target architecture will look conceptually like:
-
-    ┌──────────────────────┐
-    │      Client Apps     │
-    └──────────┬───────────┘
-    │
-    ▼
-    ┌──────────────────────┐
-    │     **API** Gateway      │
-    └──────────┬───────────┘
-    │
-    ┌──────────────────────┼────────────────────────┐
-    │                      │                        │
-    ▼                      ▼                        ▼
-    ┌─────────────┐       ┌─────────────┐          ┌─────────────┐
-    │    Auth     │       │   Account   │          │   Payment   │
-    │   Service   │       │   Service   │          │   Service   │
-    └─────────────┘       └─────────────┘          └──────┬──────┘
-    │
-    ▼
-    ┌─────────────┐
-    │    Fraud    │
-    │   Service   │
-    └──────┬──────┘
-    │
-    ▼
-    ┌─────────┐
-    │  Kafka  │
-    └────┬────┘
-    │
-    ┌──────────────────────────┼──────────────────────┐
-    │                          │                      │
-    ▼                          ▼                      ▼
-    Notification                Transaction              Analytics
-    Service                    Service                  Service
-
-This architecture is a future target, not the current implementation.
-
-🛡️ Production Engineering Principles
-
-The project prioritizes:
-
-Reliability Idempotency Transactions Rollback Retry ### Failure Handling Security Authentication Authorization **JWT** ### Account Ownership ### Secure Logging Performance ### Database Indexing ### Connection Pooling Pagination ### Efficient Queries ### Lock Management Scalability Stateless APIs ### Domain Boundaries Event-Driven Processing ### Horizontal Scaling ### Selective Microservice Extraction Observability ### Structured Logging Metrics Correlation IDs Tracing ### Health Checks 👨‍💻 Author ### Venkatesh Prathipati
-
-### Senior Software Engineer
-
-### Technical Focus
-
-Java Kotlin ### Spring Boot ### Spring Security Microservices ### Distributed Systems PostgreSQL MongoDB Kafka Redis Docker **AWS** ### Backend Architecture ⭐ Project Vision
-
-The long-term goal is to evolve this project from:
-
-### Modular Monolith
-
-into:
-
-Production-Grade Distributed Digital Banking & Payments Platform
-
-while maintaining:
-
-    Financial Correctness
-    +
-    Security
-    +
-    Reliability
-    +
-    Scalability
-    +
-    Observability
-    +
-    Maintainability
-
-The system will evolve incrementally.
-
-The goal is not to demonstrate the maximum number of technologies.
-
-The goal is to demonstrate why each technology, architecture pattern, and engineering decision is appropriate for the problem being solved.
+This is an engineering and learning project. It is not a licensed banking system and must not be used to process real customer funds or sensitive production financial data.
